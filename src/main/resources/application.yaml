@@ -1,3 +1,17 @@
 spring:
   application:
     name: boilerplate
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+    group:
+      local:
+        - local-database
+      dev:
+        - dev-database
+      stg:
+        - stg-database
+      prod:
+        - prod-database
+  config:
+    import:
+      - classpath:config/application-database.yaml
