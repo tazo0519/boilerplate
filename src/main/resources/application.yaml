@@ -16,3 +16,11 @@ spring:
     import:
       - classpath:config/application-database.yaml
       - optional:file:./.env[.properties]
+  web:
+    error:
+      include-message: never
+      include-binding-errors: never
+      include-stacktrace: never
+      include-exception: false
+      whitelabel:
+        enabled: false
