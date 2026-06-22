@@ -14,7 +14,7 @@ spring:
 spring:
   config:
     activate:
-      on-profile: local-database
+      on-profile: local
   datasource:
     driver-class-name: org.h2.Driver
     url: jdbc:h2:tcp://localhost/~/boilerplate;MODE=MYSQL;DB_CLOSE_DELAY=-1
@@ -28,7 +28,6 @@ spring:
       enabled: true
       path: /h2-console
   jpa:
-    show-sql: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
@@ -41,7 +40,7 @@ spring:
 spring:
   config:
     activate:
-      on-profile: dev-database
+      on-profile: dev
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://${DB_HOST}:${DB_PORT:3306}/${DB_NAME}?serverTimezone=Asia/Seoul
@@ -59,7 +58,7 @@ spring:
 spring:
   config:
     activate:
-      on-profile: stg-database
+      on-profile: stg
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://${DB_HOST}:${DB_PORT:3306}/${DB_NAME}?serverTimezone=Asia/Seoul
@@ -77,7 +76,7 @@ spring:
 spring:
   config:
     activate:
-      on-profile: prod-database
+      on-profile: prod
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://${DB_HOST}:${DB_PORT:3306}/${DB_NAME}?serverTimezone=Asia/Seoul
