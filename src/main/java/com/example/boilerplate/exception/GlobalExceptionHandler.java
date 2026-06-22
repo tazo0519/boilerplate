@@ -30,6 +30,18 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(errorCode.getStatus()).body(ResponseBuilder.build(body));
     }
 
+    @ExceptionHandler(ExternalApiException.class)
+    public ResponseEntity<Response<ErrorResponse>> handleExternalApi(ExternalApiException ex) {
+        ErrorCode errorCode = ErrorCode.COMMON_EXTERNAL_API_ERROR;
+        log.error("ExternalApiException: target={} detail={}", ex.getTarget(), ex.getDetail(), ex);
+        ErrorResponse body = ErrorResponse.builder()
+                .code(errorCode.name())
+                .message(errorCode.getMessage())
+                .timestamp(OffsetDateTime.now())
+                .build();
+        return ResponseEntity.status(errorCode.getStatus()).body(ResponseBuilder.build(body));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Response<ErrorResponse>> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
         List<ErrorResponse.FieldError> fieldErrors = ex.getBindingResult().getFieldErrors().stream()

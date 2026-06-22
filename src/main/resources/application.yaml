@@ -6,6 +6,7 @@ spring:
   config:
     import:
       - classpath:config/application-database.yaml
+      - classpath:config/application-http-client.yaml
       - classpath:config/application-logging.yaml
       - classpath:config/application-swagger.yaml
       - optional:file:./.env[.properties]
