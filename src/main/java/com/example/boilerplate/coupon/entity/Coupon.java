@@ -1,16 +1,14 @@
 package com.example.boilerplate.coupon.entity;
 
 import com.example.boilerplate.common.entity.BaseEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Table;
-import java.time.OffsetDateTime;
+import com.example.boilerplate.goods.entity.Goods;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.time.OffsetDateTime;
 
 @Getter
 @Entity
@@ -37,15 +35,20 @@ public class Coupon extends BaseEntity {
     @Column
     private String recipientPhone;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "goods_id", nullable = false)
+    private Goods goods;
+
     @Builder
     private Coupon(String code, String name, Long discountAmount, CouponStatus status,
-                   OffsetDateTime expiresAt, String recipientPhone) {
+                   OffsetDateTime expiresAt, String recipientPhone, Goods goods) {
         this.code = code;
         this.name = name;
         this.discountAmount = discountAmount;
         this.status = status;
         this.expiresAt = expiresAt;
         this.recipientPhone = recipientPhone;
+        this.goods = goods;
     }
 
     public void update(String name, Long discountAmount, CouponStatus status,

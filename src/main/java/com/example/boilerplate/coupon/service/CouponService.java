@@ -7,6 +7,8 @@ import com.example.boilerplate.coupon.entity.Coupon;
 import com.example.boilerplate.coupon.repository.CouponRepository;
 import com.example.boilerplate.exception.BusinessException;
 import com.example.boilerplate.exception.ErrorCode;
+import com.example.boilerplate.goods.entity.Goods;
+import com.example.boilerplate.goods.repository.GoodsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,13 +21,16 @@ import org.springframework.transaction.annotation.Transactional;
 public class CouponService {
 
     private final CouponRepository couponRepository;
+    private final GoodsRepository goodsRepository;
 
     @Transactional
     public CouponResponse create(CouponCreateRequest request) {
         if (couponRepository.existsByCode(request.getCode())) {
             throw new BusinessException(ErrorCode.COUPON_DUPLICATED_CODE, "code=" + request.getCode());
         }
-        Coupon saved = couponRepository.save(request.toEntity());
+        Goods goods = goodsRepository.findById(request.getGoodsId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.GOODS_NOT_FOUND, "goodsId=" + request.getGoodsId()));
+        Coupon saved = couponRepository.save(request.toEntity(goods));
         return CouponResponse.from(saved);
     }
 

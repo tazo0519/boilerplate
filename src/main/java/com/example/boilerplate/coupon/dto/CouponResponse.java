@@ -25,6 +25,7 @@ public class CouponResponse {
     @Masked(MaskType.PHONE)
     private String recipientPhone;
 
+    private Long goodsId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -37,6 +38,7 @@ public class CouponResponse {
                 .status(coupon.getStatus())
                 .expiresAt(coupon.getExpiresAt())
                 .recipientPhone(coupon.getRecipientPhone())
+                .goodsId(coupon.getGoods().getId())
                 .createdAt(coupon.getCreatedAt())
                 .updatedAt(coupon.getUpdatedAt())
                 .build();
