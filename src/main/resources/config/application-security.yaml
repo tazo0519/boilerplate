@@ -1,0 +1,30 @@
+# 양방향 컬럼 암호화 키 설정 (AES-256-GCM).
+# - key-base64 : Base64 인코딩된 32 byte (AES-256) 키.
+# 저장 포맷: Base64(IV(12B) ‖ ciphertext ‖ GCM tag(16B)). 동일 평문도 IV 난수로 매번 다른 암호문.
+# 운영 키 보관: 환경변수(`ENCRYPTION_KEY_BASE64`)로만 주입. 운영 전 KMS/Vault 연동 필수.
+# 키 회전 도입 시: KeyProvider에 다버전 조회 API 추가 + 저장 포맷에 version prefix 도입 + 데이터 마이그레이션.
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+
+# LOCAL ONLY — Base64("LocalOnlyDoNotUseInProd!12345678") = 32 bytes 가짜 키.
+# 이 값이 운영에 사용되면 평문 키가 코드에 박힌 셈이므로 절대 dev/stg/prod 프로파일에서 재사용하지 말 것.
+boilerplate:
+  security:
+    crypto:
+      key-base64: "TG9jYWxPbmx5RG9Ob3RVc2VJblByb2QhMTIzNDU2Nzg="
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev | stg | prod
+
+# 환경변수 미설정 시 Spring placeholder 해석에 실패해 부팅이 중단된다.
+# 운영 키는 KMS/Secret Manager에서 주입하고, 평문으로 yaml/git에 남기지 않는다.
+boilerplate:
+  security:
+    crypto:
+      key-base64: ${ENCRYPTION_KEY_BASE64}

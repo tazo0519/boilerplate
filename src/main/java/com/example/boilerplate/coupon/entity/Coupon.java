@@ -1,5 +1,6 @@
 package com.example.boilerplate.coupon.entity;
 
+import com.example.boilerplate.common.crypto.EncryptedConverter;
 import com.example.boilerplate.common.entity.BaseEntity;
 import com.example.boilerplate.goods.entity.Goods;
 import jakarta.persistence.*;
@@ -32,7 +33,8 @@ public class Coupon extends BaseEntity {
     @Column(nullable = false)
     private OffsetDateTime expiresAt;
 
-    @Column
+    @Convert(converter = EncryptedConverter.class)
+    @Column(length = 255)
     private String recipientPhone;
 
     @ManyToOne(fetch = FetchType.LAZY)
