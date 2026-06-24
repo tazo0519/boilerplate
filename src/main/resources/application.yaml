@@ -9,6 +9,7 @@ spring:
       - classpath:config/application-http-client.yaml
       - classpath:config/application-logging.yaml
       - classpath:config/application-swagger.yaml
+      - classpath:config/application-security.yaml
       - optional:file:./.env[.properties]
   web:
     error:

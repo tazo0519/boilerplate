@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS coupons (
     discount_amount BIGINT NOT NULL,
     status VARCHAR(16) NOT NULL,
     expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    recipient_phone VARCHAR(32),
+    recipient_phone VARCHAR(255),
     goods_id BIGINT NOT NULL,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,

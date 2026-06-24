@@ -1,0 +1,40 @@
+# 양방향 컬럼 암호화 키 설정 (AES-256-GCM).
+# - key-base64 : Base64 인코딩된 32 byte (AES-256) 키.
+# 저장 포맷: Base64(IV(12B) ‖ ciphertext ‖ GCM tag(16B)). 동일 평문도 IV 난수로 매번 다른 암호문.
+# 운영 키 보관: 환경변수(`ENCRYPTION_KEY_BASE64`)로만 주입. 운영 전 KMS/Vault 연동 필수.
+# 키 회전 도입 시: KeyProvider에 다버전 조회 API 추가 + 저장 포맷에 version prefix 도입 + 데이터 마이그레이션.
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+
+# LOCAL ONLY — Base64("LocalOnlyDoNotUseInProd!12345678") = 32 bytes 가짜 키.
+# 이 값이 운영에 사용되면 평문 키가 코드에 박힌 셈이므로 절대 dev/stg/prod 프로파일에서 재사용하지 말 것.
+boilerplate:
+  security:
+    crypto:
+      key-base64: "TG9jYWxPbmx5RG9Ob3RVc2VJblByb2QhMTIzNDU2Nzg="
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev | stg | prod
+
+# 운영 키는 KMS/Secret Manager에서 주입하고, 평문으로 yaml/git에 남기지 않는다.
+# KMS/Secret Manager를 사용하지 않는다면 다음 대안이 있다 — 각각 한계가 명확하다:
+#   - Jasypt 등 yaml 암호화: 마스터 키 보관 문제로 회귀 (chicken-and-egg)
+#   - SOPS / sealed-secrets: git에 암호문 저장 + 복호화 키 별도 분배
+#   - CI/CD Secrets: GitHub Actions / GitLab CI에 보관 후 배포 시 env 주입
+# 어떤 방식을 채택할지는 정보보호팀·인프라팀 검토 후 결정한다.
+#
+# ⚠️ 아래 fallback(local 가짜 키)은 환경변수 누락 시에도 부팅이 통과하도록 두는 임시 장치다.
+#    운영 배포 전에 반드시 `${ENCRYPTION_KEY_BASE64}` 형태로 default를 제거해
+#    placeholder 해석 실패로 부팅이 중단되도록 가드를 복원해야 한다.
+#    이 fallback이 운영에 그대로 사용되면 공개 키로 PII를 암호화한 것과 동등(yaml/git 공개) → 사실상 평문.
+boilerplate:
+  security:
+    crypto:
+      # TODO(운영 전): default(`:TG9j...`) 제거 — 환경변수 미설정 시 부팅이 중단되도록 강제할 것.
+      key-base64: ${ENCRYPTION_KEY_BASE64:TG9jYWxPbmx5RG9Ob3RVc2VJblByb2QhMTIzNDU2Nzg=}
