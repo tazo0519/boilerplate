@@ -1,0 +1,63 @@
+# =====================================================================
+# 로컬 개발용 compose — PostgreSQL 16 + 애플리케이션(local 프로필)
+#
+#   기동:  docker compose up --build
+#   종료:  docker compose down          (데이터 유지)
+#   초기화: docker compose down -v       (DB 볼륨까지 삭제)
+#
+# ※ 로컬 전용입니다. 운영/ECS 배포에는 사용하지 마세요.
+#   여기의 값은 로컬 더미이며, 실제 시크릿은 커밋 금지입니다.
+# =====================================================================
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: boilerplate-postgres
+    environment:
+      POSTGRES_DB: boilerplate
+      POSTGRES_USER: boilerplate
+      POSTGRES_PASSWORD: local1234          # 로컬 더미 — 운영 사용 금지
+      TZ: Asia/Seoul
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      # 컨테이너 최초 생성 시 스키마/샘플 데이터 자동 적재 (테스트와 동일 소스)
+      - ./src/main/resources/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U boilerplate -d boilerplate"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: boilerplate-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      DB_HOST: postgres                     # compose 네트워크상의 서비스명
+      DB_PORT: 5432
+      DB_NAME: boilerplate
+      DB_USERNAME: boilerplate
+      DB_PASSWORD: local1234                # 로컬 더미 — 운영 사용 금지
+      # 양방향 암호화 키(Base64 32byte). local 프로필은 미설정 시 로컬 fallback 키로 부팅됨.
+      # 명시 주입하려면 아래 주석 해제 (로컬 더미 — 운영 사용 금지):
+      # ENCRYPTION_KEY_BASE64: "TG9jYWxPbmx5RG9Ob3RVc2VJblByb2QhMTIzNDU2Nzg="
+      TZ: Asia/Seoul
+    ports:
+      - "8080:8080"
+    healthcheck:
+      # actuator 미포함이라 TCP 오픈 여부로 확인 (temurin 이미지의 bash 사용)
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/8080"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 40s
+
+volumes:
+  postgres-data:

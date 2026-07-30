@@ -1,0 +1,24 @@
+# 빌드 컨텍스트 최소화 — 소스와 Gradle 래퍼만 이미지로 전달
+.git
+.gradle
+.idea
+build/
+out/
+bin/
+HELP.md
+
+# 로컬 시크릿/환경 파일은 이미지에 포함하지 않음
+.env
+.env.local
+*.env
+!.env.example
+
+# 문서/IDE
+*.iml
+.vscode/
+README.md
+
+# 도커 관련 산출물
+docker-compose*.yml
+Dockerfile
+.dockerignore

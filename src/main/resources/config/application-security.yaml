@@ -7,9 +7,9 @@
 spring:
   config:
     activate:
-      on-profile: local
+      on-profile: local | test
 
-# LOCAL ONLY — Base64("LocalOnlyDoNotUseInProd!12345678") = 32 bytes 가짜 키.
+# LOCAL/TEST ONLY — Base64("LocalOnlyDoNotUseInProd!12345678") = 32 bytes 가짜 키.
 # 이 값이 운영에 사용되면 평문 키가 코드에 박힌 셈이므로 절대 dev/stg/prod 프로파일에서 재사용하지 말 것.
 boilerplate:
   security:
