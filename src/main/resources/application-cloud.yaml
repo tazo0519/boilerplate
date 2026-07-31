@@ -1,26 +1,27 @@
-# 양방향 컬럼 암호화 키 설정 (AES-256-GCM).
-# - key-base64 : Base64 인코딩된 32 byte (AES-256) 키.
-# 저장 포맷: Base64(IV(12B) ‖ ciphertext ‖ GCM tag(16B)). 동일 평문도 IV 난수로 매번 다른 암호문.
-# 운영 키 보관: 환경변수(`ENCRYPTION_KEY_BASE64`)로만 주입. 운영 전 KMS/Vault 연동 필수.
-# 키 회전 도입 시: KeyProvider에 다버전 조회 API 추가 + 저장 포맷에 version prefix 도입 + 데이터 마이그레이션.
----
+# =====================================================================
+# cloud 프로필 — dev/stg/prod 공유 원격 설정.
+# dev/stg/prod 프로필은 application.yaml 의 spring.profiles.group 으로
+# 이 프로필을 함께 활성화한다. 접속정보·풀크기 등 값 차이는 환경변수로 주입한다.
+#   - prod 는 task definition 에서 DB_POOL_MIN=10, DB_POOL_MAX=30 주입(미설정 시 아래 default).
+# =====================================================================
 spring:
-  config:
-    activate:
-      on-profile: local | test
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/${DB_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      minimum-idle: ${DB_POOL_MIN:5}
+      maximum-pool-size: ${DB_POOL_MAX:20}
 
-# LOCAL/TEST ONLY — Base64("LocalOnlyDoNotUseInProd!12345678") = 32 bytes 가짜 키.
-# 이 값이 운영에 사용되면 평문 키가 코드에 박힌 셈이므로 절대 dev/stg/prod 프로파일에서 재사용하지 말 것.
-boilerplate:
-  security:
-    crypto:
-      key-base64: "TG9jYWxPbmx5RG9Ob3RVc2VJblByb2QhMTIzNDU2Nzg="
-
----
-spring:
-  config:
-    activate:
-      on-profile: dev | stg | prod
+# 구조화 로그(ECS format) → stdout → ECS awslogs/FireLens 수집
+logging:
+  structured:
+    format:
+      console: ecs
+    ecs:
+      service:
+        name: ${spring.application.name}
 
 # 운영 키는 KMS/Secret Manager에서 주입하고, 평문으로 yaml/git에 남기지 않는다.
 # KMS/Secret Manager를 사용하지 않는다면 다음 대안이 있다 — 각각 한계가 명확하다:

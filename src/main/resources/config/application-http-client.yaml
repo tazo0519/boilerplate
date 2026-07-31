@@ -1,9 +1,0 @@
-spring:
-  http:
-    clients:
-      connect-timeout: 3s
-      read-timeout: 10s
-
-external:
-  goods:
-    base-url: ${EXTERNAL_GOODS_BASE_URL:https://api.partner.example.com}

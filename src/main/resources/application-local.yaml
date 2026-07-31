@@ -1,0 +1,25 @@
+# =====================================================================
+# local 프로필 — 로컬 개발(docker compose PostgreSQL). 기본 활성 프로필.
+# 접속정보 미설정 시 아래 default 로 부팅된다.
+# =====================================================================
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:boilerplate}
+    username: ${DB_USERNAME:boilerplate}
+    password: ${DB_PASSWORD:local1234}
+    hikari:
+      minimum-idle: 4
+      maximum-pool-size: 4
+
+logging:
+  level:
+    com.example.boilerplate: DEBUG
+    org.hibernate.SQL: DEBUG
+
+# LOCAL ONLY — Base64("LocalOnlyDoNotUseInProd!12345678") = 32 bytes 가짜 키.
+# 이 값이 운영에 사용되면 평문 키가 코드에 박힌 셈이므로 절대 dev/stg/prod 에서 재사용하지 말 것.
+boilerplate:
+  security:
+    crypto:
+      key-base64: "TG9jYWxPbmx5RG9Ob3RVc2VJblByb2QhMTIzNDU2Nzg="
