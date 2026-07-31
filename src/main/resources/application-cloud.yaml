@@ -4,6 +4,11 @@
 # 이 프로필을 함께 활성화한다. 접속정보·풀크기 등 값 차이는 환경변수로 주입한다.
 #   - prod 는 task definition 에서 DB_POOL_MIN=10, DB_POOL_MAX=30 주입(미설정 시 아래 default).
 # =====================================================================
+# ALB 뒤에서 X-Forwarded-* (client IP·scheme=https·host) 를 신뢰/반영.
+# 로컬(application-local.yaml)은 프록시 뒤가 아니므로 설정하지 않는다(헤더 스푸핑 방지).
+server:
+  forward-headers-strategy: framework
+
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
