@@ -52,7 +52,8 @@ services:
     ports:
       - "8080:8080"
     healthcheck:
-      # actuator 미포함이라 TCP 오픈 여부로 확인 (temurin 이미지의 bash 사용)
+      # JRE 이미지에 curl/wget 이 없어 로컬은 TCP 오픈 여부로만 확인(temurin 의 bash 사용).
+      # 운영에서는 ALB 타깃그룹이 /actuator/health/readiness 로 HTTP 헬스체크(컨테이너 내 도구 불필요).
       test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/8080"]
       interval: 10s
       timeout: 3s

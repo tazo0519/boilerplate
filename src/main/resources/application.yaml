@@ -12,6 +12,10 @@ spring:
   config:
     import:
       - optional:file:./.env[.properties]
+  # 인플라이트 요청 드레이닝 시간. ECS task def stopTimeout(권장 ≥ 45s) 보다 작게,
+  # ALB deregistration delay 는 이 시간을 덮도록 설정한다.
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
   web:
     error:
       include-message: never
@@ -60,3 +64,29 @@ springdoc:
     path: /swagger-ui.html
     operations-sorter: alpha
     tags-sorter: alpha
+
+# --- 공통: 서버/종료 ---
+# graceful shutdown: SIGTERM 수신 시 새 요청 거절 + 진행 요청 완료까지 대기.
+# (Dockerfile 의 exec 로 JVM 이 PID 1 이 되어 SIGTERM 을 직접 받는다)
+server:
+  shutdown: graceful
+
+# --- 공통: Actuator 헬스 (ALB 타깃그룹 / ECS 헬스체크 대상) ---
+# ALB readiness → /actuator/health/readiness, liveness → /actuator/health/liveness
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health          # health 만 노출(최소 표면적). ALB 리스너에서 /actuator 차단 권장(방어심화)
+  endpoint:
+    health:
+      probes:
+        enabled: true            # ECS 는 K8s 가 아니므로 프로브를 명시 활성화
+      show-details: never        # 컴포넌트 상세 비노출(정보 노출 방지)
+      group:
+        # DB 다운 시 readiness DOWN → ALB 가 해당 태스크로 트래픽 미전송
+        readiness:
+          include: readinessState, db
+        # liveness 는 기본(livenessState)만 — DB 블립으로 컨테이너가 재시작되지 않도록 db 미포함
+        liveness:
+          include: livenessState
