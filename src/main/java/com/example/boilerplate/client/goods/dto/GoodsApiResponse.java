@@ -1,15 +1,12 @@
 package com.example.boilerplate.client.goods.dto;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-@Getter
-@Setter
-@NoArgsConstructor
-public class GoodsApiResponse {
-
-    private Long goodsId;
-    private Long originalPrice;
-    private Long salePrice;
+/**
+ * 외부 응답 DTO 는 record 로 선언한다 — 받아서 읽기만 하는 불변 데이터.
+ * (Jackson 이 record 를 그대로 역직렬화한다)
+ */
+public record GoodsApiResponse(
+        Long goodsId,
+        Long originalPrice,
+        Long salePrice
+) {
 }
