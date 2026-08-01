@@ -10,8 +10,13 @@ description = 'boilerplate'
 
 // build-info.properties 생성 → BuildProperties 빈(actuator /info, OpenAPI 버전 소스).
 // 버전을 코드에 하드코딩하지 않고 이 단일 소스(build.gradle version)에서 읽게 한다.
+// build.time 은 제외 — 매 빌드 jar 바이트가 바뀌어 Docker 레이어 캐시가 무효화되는 것을 방지(재현 빌드).
 springBoot {
-    buildInfo()
+    buildInfo {
+        properties {
+            excludes = ['time']
+        }
+    }
 }
 
 java {

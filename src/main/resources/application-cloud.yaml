@@ -35,9 +35,11 @@ logging:
 #   - CI/CD Secrets: GitHub Actions / GitLab CI에 보관 후 배포 시 env 주입
 # 어떤 방식을 채택할지는 정보보호팀·인프라팀 검토 후 결정한다.
 #
-# ⚠️ fail-fast: default 를 두지 않는다. ENCRYPTION_KEY_BASE64 미설정 시 placeholder 해석
-#    실패로 부팅이 중단된다 → 공개 더미 키로 PII를 암호화하는 사고(yaml/git 공개 = 사실상 평문)를
-#    원천 차단. dev/stg/prod 는 반드시 KMS/Secret Manager(또는 ECS taskdef secrets)에서 주입한다.
+# ⚠️ fail-fast: default 를 두지 않는다. ENCRYPTION_KEY_BASE64 미설정 시
+#    @ConfigurationProperties 바인더는 미해석 placeholder 를 리터럴("${...}")로 바인딩하며,
+#    EnvKeyProvider 의 명시적 placeholder 감지가 부팅을 중단시킨다 → 공개 더미 키로 PII 를
+#    암호화하는 사고(yaml/git 공개 = 사실상 평문)를 원천 차단.
+#    dev/stg/prod 는 반드시 KMS/Secret Manager(또는 ECS taskdef secrets)에서 주입한다.
 boilerplate:
   security:
     crypto:
