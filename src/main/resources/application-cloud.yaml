@@ -42,8 +42,8 @@ boilerplate:
   security:
     crypto:
       key-base64: ${ENCRYPTION_KEY_BASE64}
-  # CORS — 쉼표로 구분된 허용 Origin (예: https://app.example.com,https://www.example.com).
-  # 미설정 시 CORS 비활성 → 동일 출처만 허용(안전 기본값). allow-credentials=true 이므로 와일드카드 불가.
+  # CORS — 쉼표로 구분된 허용 Origin/패턴 (예: https://app.example.com,https://*.example.com).
+  # 미설정 시 CORS 비활성 → 동일 출처만 허용(안전 기본값). allowedOriginPatterns 라 와일드카드 패턴 허용.
   web:
     cors:
       allowed-origins: ${CORS_ALLOWED_ORIGINS:}
