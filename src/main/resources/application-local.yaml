@@ -23,3 +23,8 @@ boilerplate:
   security:
     crypto:
       key-base64: "TG9jYWxPbmx5RG9Ob3RVc2VJblByb2QhMTIzNDU2Nzg="
+  # CORS — 로컬 프론트(Next.js dev 서버). 서비스 포트가 다르면 조정한다.
+  web:
+    cors:
+      allowed-origins:
+        - http://localhost:3000
