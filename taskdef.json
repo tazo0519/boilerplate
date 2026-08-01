@@ -1,0 +1,42 @@
+{
+  "family": "boilerplate",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "__EXEC_ROLE_ARN__",
+  "taskRoleArn": "__TASK_ROLE_ARN__",
+  "containerDefinitions": [
+    {
+      "name": "app",
+      "image": "__IMAGE_URI__",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {"name": "SPRING_PROFILES_ACTIVE", "value": "dev"},
+        {"name": "SERVER_PORT", "value": "8080"}
+      ],
+      "secrets": [
+        {"name": "DB_HOST",     "valueFrom": "arn:aws:ssm:__REGION__:__ACCOUNT_ID__:parameter/boilerplate/dev/db_host"},
+        {"name": "DB_PORT",     "valueFrom": "arn:aws:ssm:__REGION__:__ACCOUNT_ID__:parameter/boilerplate/dev/db_port"},
+        {"name": "DB_NAME",     "valueFrom": "arn:aws:ssm:__REGION__:__ACCOUNT_ID__:parameter/boilerplate/dev/db_name"},
+        {"name": "DB_USERNAME", "valueFrom": "arn:aws:ssm:__REGION__:__ACCOUNT_ID__:parameter/boilerplate/dev/db_username"},
+        {"name": "DB_PASSWORD", "valueFrom": "arn:aws:ssm:__REGION__:__ACCOUNT_ID__:parameter/boilerplate/dev/db_password"},
+        {"name": "ENCRYPTION_KEY_BASE64", "valueFrom": "arn:aws:ssm:__REGION__:__ACCOUNT_ID__:parameter/boilerplate/dev/encryption_key_base64"}
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/boilerplate",
+          "awslogs-region": "__REGION__",
+          "awslogs-stream-prefix": "app"
+        }
+      }
+    }
+  ]
+}

@@ -35,12 +35,15 @@ logging:
 #   - CI/CD Secrets: GitHub Actions / GitLab CI에 보관 후 배포 시 env 주입
 # 어떤 방식을 채택할지는 정보보호팀·인프라팀 검토 후 결정한다.
 #
-# ⚠️ 아래 fallback(local 가짜 키)은 환경변수 누락 시에도 부팅이 통과하도록 두는 임시 장치다.
-#    운영 배포 전에 반드시 `${ENCRYPTION_KEY_BASE64}` 형태로 default를 제거해
-#    placeholder 해석 실패로 부팅이 중단되도록 가드를 복원해야 한다.
-#    이 fallback이 운영에 그대로 사용되면 공개 키로 PII를 암호화한 것과 동등(yaml/git 공개) → 사실상 평문.
+# ⚠️ fail-fast: default 를 두지 않는다. ENCRYPTION_KEY_BASE64 미설정 시 placeholder 해석
+#    실패로 부팅이 중단된다 → 공개 더미 키로 PII를 암호화하는 사고(yaml/git 공개 = 사실상 평문)를
+#    원천 차단. dev/stg/prod 는 반드시 KMS/Secret Manager(또는 ECS taskdef secrets)에서 주입한다.
 boilerplate:
   security:
     crypto:
-      # TODO(운영 전): default(`:TG9j...`) 제거 — 환경변수 미설정 시 부팅이 중단되도록 강제할 것.
-      key-base64: ${ENCRYPTION_KEY_BASE64:TG9jYWxPbmx5RG9Ob3RVc2VJblByb2QhMTIzNDU2Nzg=}
+      key-base64: ${ENCRYPTION_KEY_BASE64}
+  # CORS — 쉼표로 구분된 허용 Origin/패턴 (예: https://app.example.com,https://*.example.com).
+  # 미설정 시 CORS 비활성 → 동일 출처만 허용(안전 기본값). allowedOriginPatterns 라 와일드카드 패턴 허용.
+  web:
+    cors:
+      allowed-origins: ${CORS_ALLOWED_ORIGINS:}
