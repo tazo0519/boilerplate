@@ -3,7 +3,6 @@ package com.example.boilerplate.common;
 import lombok.Getter;
 
 import java.util.List;
-import java.util.Objects;
 
 @Getter
 public class DataResponse<T> {
@@ -29,6 +28,10 @@ public class DataResponse<T> {
     }
 
     public Integer getSize() {
-        return Objects.nonNull(size) ? size : items.size();
+        if (size != null) {
+            return size;
+        }
+        // items 미설정(no-arg 생성/역직렬화) 시에도 NPE 없이 0 을 반환
+        return items != null ? items.size() : 0;
     }
 }
