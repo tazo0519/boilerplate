@@ -9,7 +9,6 @@ import com.example.boilerplate.coupon.dto.CouponUpdateRequest;
 import com.example.boilerplate.coupon.service.CouponService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -40,8 +39,7 @@ public class CouponController extends BaseController {
 
     @GetMapping
     public Response<DataResponse<CouponResponse>> list(Pageable pageable) {
-        Page<CouponResponse> page = couponService.list(pageable);
-        return respond(page.getContent(), page.getNumber(), page.getSize(), page.getTotalElements());
+        return respond(couponService.list(pageable));
     }
 
     @PutMapping("/{id}")
