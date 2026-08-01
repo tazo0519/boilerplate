@@ -8,6 +8,7 @@ import jakarta.validation.ConstraintViolationException;
 import java.time.OffsetDateTime;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -35,6 +36,20 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Response<ErrorResponse>> handleExternalApi(ExternalApiException ex) {
         ErrorCode errorCode = ErrorCode.COMMON_EXTERNAL_API_ERROR;
         log.error("ExternalApiException: target={} detail={}", ex.getTarget(), ex.getDetail(), ex);
+        ErrorResponse body = ErrorResponse.builder()
+                .code(errorCode.name())
+                .message(errorCode.getMessage())
+                .timestamp(OffsetDateTime.now())
+                .build();
+        return ResponseEntity.status(errorCode.getStatus()).body(ResponseBuilder.build(body));
+    }
+
+    // 존재하지 않는 필드로 정렬/조회 요청(?sort=없는필드) 시 Spring Data 가 던진다.
+    // 클라이언트 입력 오류이므로 500 이 아닌 400 으로 응답한다.
+    @ExceptionHandler(PropertyReferenceException.class)
+    public ResponseEntity<Response<ErrorResponse>> handlePropertyReference(PropertyReferenceException ex) {
+        ErrorCode errorCode = ErrorCode.COMMON_BAD_REQUEST;
+        log.warn("PropertyReferenceException: {}", ex.getMessage());
         ErrorResponse body = ErrorResponse.builder()
                 .code(errorCode.name())
                 .message(errorCode.getMessage())

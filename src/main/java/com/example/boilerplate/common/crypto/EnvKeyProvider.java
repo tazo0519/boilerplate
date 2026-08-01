@@ -13,9 +13,18 @@ public class EnvKeyProvider implements KeyProvider {
     private final SecretKey activeKey;
 
     public EnvKeyProvider(EncryptionProperties properties) {
+        String keyBase64 = properties.getKeyBase64();
+        // @ConfigurationProperties 바인더는 미해석 placeholder(${...})를 예외 없이 리터럴로
+        // 바인딩하므로, 환경변수 누락을 여기서 명시적으로 감지해 원인을 정확히 알려준다.
+        // (이 검증이 없으면 "Base64 형식 오류"로 보고되어 운영자가 원인을 오독한다)
+        if (keyBase64 != null && keyBase64.startsWith("${")) {
+            throw new IllegalStateException(
+                    "암호화 키 환경변수가 주입되지 않았습니다. placeholder 가 미해석 상태입니다: " + keyBase64
+                            + " — ENCRYPTION_KEY_BASE64 를 환경변수(또는 ECS taskdef secrets)로 주입하세요.");
+        }
         byte[] keyBytes;
         try {
-            keyBytes = Base64.getDecoder().decode(properties.getKeyBase64());
+            keyBytes = Base64.getDecoder().decode(keyBase64);
         } catch (IllegalArgumentException e) {
             throw new IllegalStateException(
                     "boilerplate.security.crypto.key-base64 값이 올바른 Base64 형식이 아닙니다.", e);

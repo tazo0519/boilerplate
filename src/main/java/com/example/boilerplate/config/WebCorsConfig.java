@@ -35,6 +35,13 @@ public class WebCorsConfig implements WebMvcConfigurer {
         if (origins.isEmpty()) {
             return;
         }
+        // 가드: "*" + 자격증명 허용은 모든 사이트의 credentialed 교차출처 요청을 조용히 허용하는
+        // 조합이라 부팅 단계에서 거부한다(fail-fast). 서브도메인 패턴(https://*.example.com)은 허용.
+        if (properties.isAllowCredentials() && origins.contains("*")) {
+            throw new IllegalStateException(
+                    "CORS 설정 오류: allow-credentials=true 상태에서 allowed-origins 에 \"*\" 를 쓸 수 없습니다. "
+                            + "명시 도메인(또는 https://*.example.com 형태의 패턴)을 지정하거나 allow-credentials 를 끄세요.");
+        }
         // allowedOriginPatterns: allow-credentials=true 와 함께 "*"/서브도메인 패턴을 허용한다.
         // (allowedOrigins 는 credentials 동반 시 "*" 를 넣으면 요청 처리 중 예외를 던진다.)
         registry.addMapping(properties.getPathPattern())
