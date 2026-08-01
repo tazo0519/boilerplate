@@ -13,6 +13,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.RestClientException;
 
 @Slf4j
 @RestControllerAdvice
@@ -34,6 +35,20 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Response<ErrorResponse>> handleExternalApi(ExternalApiException ex) {
         ErrorCode errorCode = ErrorCode.COMMON_EXTERNAL_API_ERROR;
         log.error("ExternalApiException: target={} detail={}", ex.getTarget(), ex.getDetail(), ex);
+        ErrorResponse body = ErrorResponse.builder()
+                .code(errorCode.name())
+                .message(errorCode.getMessage())
+                .timestamp(OffsetDateTime.now())
+                .build();
+        return ResponseEntity.status(errorCode.getStatus()).body(ResponseBuilder.build(body));
+    }
+
+    // 상태코드 에러(4xx/5xx)는 HttpClientFactory 가 ExternalApiException 으로 변환하므로,
+    // 여기 도달하는 것은 연결 실패·타임아웃 등 I/O 계열(ResourceAccessException 등)이다.
+    @ExceptionHandler(RestClientException.class)
+    public ResponseEntity<Response<ErrorResponse>> handleRestClient(RestClientException ex) {
+        ErrorCode errorCode = ErrorCode.COMMON_EXTERNAL_API_ERROR;
+        log.error("RestClientException: {}", ex.getMessage(), ex);
         ErrorResponse body = ErrorResponse.builder()
                 .code(errorCode.name())
                 .message(errorCode.getMessage())
