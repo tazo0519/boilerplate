@@ -38,6 +38,22 @@ dependencies {
     testAnnotationProcessor 'org.projectlombok:lombok'
 }
 
+// 단위 테스트(빠른 레인): integration 태그 제외 — Docker 불필요
 tasks.named('test') {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        excludeTags 'integration'
+    }
+}
+
+// 통합 테스트: integration 태그만 (Testcontainers 등, Docker 필요).
+// check/build 에 엮지 않으므로 `./gradlew build` 는 단위만 돌아 Docker 없이 통과한다.
+tasks.register('integrationTest', Test) {
+    description = 'Runs integration tests tagged "integration" (Testcontainers, requires Docker).'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'integration'
+    }
+    shouldRunAfter tasks.named('test')
 }
