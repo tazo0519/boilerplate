@@ -27,8 +27,8 @@ public class GoodsResponse {
                 .code(goods.getCode())
                 .name(goods.getName())
                 .description(goods.getDescription())
-                .originalPrice(priceInfo != null ? priceInfo.getOriginalPrice() : null)
-                .salePrice(priceInfo != null ? priceInfo.getSalePrice() : null)
+                .originalPrice(priceInfo != null ? priceInfo.originalPrice() : null)
+                .salePrice(priceInfo != null ? priceInfo.salePrice() : null)
                 .createdAt(goods.getCreatedAt())
                 .updatedAt(goods.getUpdatedAt())
                 .build();
