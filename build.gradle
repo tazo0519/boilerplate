@@ -8,6 +8,12 @@ group = 'com.example'
 version = '0.0.1-SNAPSHOT'
 description = 'boilerplate'
 
+// build-info.properties 생성 → BuildProperties 빈(actuator /info, OpenAPI 버전 소스).
+// 버전을 코드에 하드코딩하지 않고 이 단일 소스(build.gradle version)에서 읽게 한다.
+springBoot {
+    buildInfo()
+}
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
