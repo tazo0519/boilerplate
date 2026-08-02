@@ -58,7 +58,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(errorCode.getStatus()).body(ResponseBuilder.build(body));
     }
 
-    // 상태코드 에러(4xx/5xx)는 HttpClientFactory 가 ExternalApiException 으로 변환하므로,
+    // 상태코드 에러(4xx/5xx)는 HttpServiceClientsConfig 가 ExternalApiException 으로 변환하므로,
     // 여기 도달하는 것은 연결 실패·타임아웃 등 I/O 계열(ResourceAccessException 등)이다.
     @ExceptionHandler(RestClientException.class)
     public ResponseEntity<Response<ErrorResponse>> handleRestClient(RestClientException ex) {

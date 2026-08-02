@@ -19,7 +19,7 @@ public class GoodsService {
     private final GoodsRepository goodsRepository;
     private final GoodsClient goodsClient;
 
-    // 외부 호출 에러 변환은 공통 처리된다 — 4xx/5xx 는 HttpClientFactory 의 상태 핸들러가
+    // 외부 호출 에러 변환은 공통 처리된다 — 4xx/5xx 는 HttpServiceClientsConfig 의 상태 핸들러가
     // ExternalApiException 으로, 연결 실패 등은 GlobalExceptionHandler 가 변환한다.
     public Page<GoodsResponse> list(Pageable pageable) {
         return goodsRepository.findAll(pageable)

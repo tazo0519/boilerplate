@@ -46,16 +46,17 @@ spring:
         default_batch_fetch_size: 100
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
-  # --- 공통: HTTP 클라이언트 타임아웃 ---
+  # --- 공통: HTTP 클라이언트 ---
   http:
+    # 전역 기본 타임아웃 (그룹별 미설정 시 fallback)
     clients:
       connect-timeout: 3s
       read-timeout: 10s
-
-# --- 공통: 외부 연동 ---
-external:
-  goods:
-    base-url: ${EXTERNAL_GOODS_BASE_URL:https://api.partner.example.com}
+    # 외부 연동 — HTTP Service Group 별 설정 (등록: HttpServiceClientsConfig 의 @ImportHttpServices)
+    # 그룹별로 base-url 외에 default-header(API 키 등)/타임아웃/apiversion 도 지정 가능.
+    serviceclient:
+      goods:
+        base-url: ${EXTERNAL_GOODS_BASE_URL:https://api.partner.example.com}
 
 # --- 공통: 로깅(패턴/레벨 기본) ---
 logging:
