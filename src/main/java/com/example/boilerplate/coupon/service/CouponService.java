@@ -1,11 +1,11 @@
 package com.example.boilerplate.coupon.service;
 
+import com.example.boilerplate.coupon.CouponErrorCode;
 import com.example.boilerplate.coupon.dto.CouponCreateRequest;
 import com.example.boilerplate.coupon.dto.CouponResponse;
 import com.example.boilerplate.coupon.dto.CouponUpdateRequest;
 import com.example.boilerplate.coupon.entity.Coupon;
 import com.example.boilerplate.coupon.repository.CouponRepository;
-import com.example.boilerplate.coupon.CouponErrorCode;
 import com.example.boilerplate.exception.BusinessException;
 import com.example.boilerplate.goods.GoodsErrorCode;
 import com.example.boilerplate.goods.entity.Goods;

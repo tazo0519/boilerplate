@@ -14,6 +14,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.server.PathContainer;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.pattern.PathPattern;
 import org.springframework.web.util.pattern.PathPatternParser;
@@ -36,9 +37,12 @@ public class MdcLoggingFilter extends OncePerRequestFilter {
     }
 
     // 제외 경로(기본: 헬스체크)는 액세스 로그·traceId 처리를 건너뛴다 — 폴링 노이즈 제거.
+    // 컨텍스트-상대 경로로 매칭(context-path 를 쓰는 서비스에서도 동작)하고,
+    // cleanPath 로 ".." 시퀀스를 정규화해 비정규화 URI 로 로그 제외를 우회하는 것을 막는다.
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        PathContainer path = PathContainer.parsePath(request.getRequestURI());
+        String relative = request.getRequestURI().substring(request.getContextPath().length());
+        PathContainer path = PathContainer.parsePath(StringUtils.cleanPath(relative));
         return excludePatterns.stream().anyMatch(pattern -> pattern.matches(path));
     }
 
