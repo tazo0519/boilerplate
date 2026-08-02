@@ -23,9 +23,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<Response<ErrorResponse>> handleBusinessException(BusinessException ex) {
         ErrorCode errorCode = ex.getErrorCode();
-        log.warn("BusinessException: code={} detail={}", errorCode.name(), ex.getDetail());
+        log.warn("BusinessException: code={} detail={}", errorCode.getCode(), ex.getDetail());
         ErrorResponse body = ErrorResponse.builder()
-                .code(errorCode.name())
+                .code(errorCode.getCode())
                 .message(errorCode.getMessage())
                 .timestamp(OffsetDateTime.now())
                 .build();
@@ -34,10 +34,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ExternalApiException.class)
     public ResponseEntity<Response<ErrorResponse>> handleExternalApi(ExternalApiException ex) {
-        ErrorCode errorCode = ErrorCode.COMMON_EXTERNAL_API_ERROR;
+        ErrorCode errorCode = CommonErrorCode.COMMON_EXTERNAL_API_ERROR;
         log.error("ExternalApiException: target={} detail={}", ex.getTarget(), ex.getDetail(), ex);
         ErrorResponse body = ErrorResponse.builder()
-                .code(errorCode.name())
+                .code(errorCode.getCode())
                 .message(errorCode.getMessage())
                 .timestamp(OffsetDateTime.now())
                 .build();
@@ -48,10 +48,10 @@ public class GlobalExceptionHandler {
     // 클라이언트 입력 오류이므로 500 이 아닌 400 으로 응답한다.
     @ExceptionHandler(PropertyReferenceException.class)
     public ResponseEntity<Response<ErrorResponse>> handlePropertyReference(PropertyReferenceException ex) {
-        ErrorCode errorCode = ErrorCode.COMMON_BAD_REQUEST;
+        ErrorCode errorCode = CommonErrorCode.COMMON_BAD_REQUEST;
         log.warn("PropertyReferenceException: {}", ex.getMessage());
         ErrorResponse body = ErrorResponse.builder()
-                .code(errorCode.name())
+                .code(errorCode.getCode())
                 .message(errorCode.getMessage())
                 .timestamp(OffsetDateTime.now())
                 .build();
@@ -62,10 +62,10 @@ public class GlobalExceptionHandler {
     // 여기 도달하는 것은 연결 실패·타임아웃 등 I/O 계열(ResourceAccessException 등)이다.
     @ExceptionHandler(RestClientException.class)
     public ResponseEntity<Response<ErrorResponse>> handleRestClient(RestClientException ex) {
-        ErrorCode errorCode = ErrorCode.COMMON_EXTERNAL_API_ERROR;
+        ErrorCode errorCode = CommonErrorCode.COMMON_EXTERNAL_API_ERROR;
         log.error("RestClientException: {}", ex.getMessage(), ex);
         ErrorResponse body = ErrorResponse.builder()
-                .code(errorCode.name())
+                .code(errorCode.getCode())
                 .message(errorCode.getMessage())
                 .timestamp(OffsetDateTime.now())
                 .build();
@@ -93,9 +93,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Response<ErrorResponse>> handleException(Exception ex) {
         log.error("Unhandled exception", ex);
-        ErrorCode errorCode = ErrorCode.COMMON_INTERNAL_ERROR;
+        ErrorCode errorCode = CommonErrorCode.COMMON_INTERNAL_ERROR;
         ErrorResponse body = ErrorResponse.builder()
-                .code(errorCode.name())
+                .code(errorCode.getCode())
                 .message(errorCode.getMessage())
                 .timestamp(OffsetDateTime.now())
                 .build();
@@ -103,9 +103,9 @@ public class GlobalExceptionHandler {
     }
 
     private ResponseEntity<Response<ErrorResponse>> buildValidationErrorResponse(List<ErrorResponse.FieldError> fieldErrors) {
-        ErrorCode errorCode = ErrorCode.COMMON_INVALID_INPUT;
+        ErrorCode errorCode = CommonErrorCode.COMMON_INVALID_INPUT;
         ErrorResponse body = ErrorResponse.builder()
-                .code(errorCode.name())
+                .code(errorCode.getCode())
                 .message(errorCode.getMessage())
                 .timestamp(OffsetDateTime.now())
                 .fieldErrors(fieldErrors)
