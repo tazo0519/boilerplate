@@ -1,6 +1,6 @@
 package com.example.boilerplate.goods.controller;
 
-import com.example.boilerplate.common.BaseController;
+import com.example.boilerplate.common.PagingController;
 import com.example.boilerplate.common.DataResponse;
 import com.example.boilerplate.common.Response;
 import com.example.boilerplate.goods.dto.GoodsResponse;
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/goods")
 @RequiredArgsConstructor
-public class GoodsController extends BaseController {
+public class GoodsController extends PagingController {
 
     private final GoodsService goodsService;
 
