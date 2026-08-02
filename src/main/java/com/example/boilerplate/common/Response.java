@@ -11,9 +11,7 @@ public class Response<T> {
     private ErrorResponse errors;
 
     // 생성은 ResponseBuilder/BaseController 를 통해서만 한다(package-private).
-    Response() {
-    }
-
+    // 직렬화 전용 모델 — creator 가 없어 역직렬화는 불가(의도된 제약).
     Response(ErrorResponse errors) {
         this.errors = errors;
     }
