@@ -11,7 +11,7 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  *                     기본값은 ALB/ECS 가 수 초마다 호출하는 헬스체크 — 로그 노이즈 제거 목적.
  */
 @ConfigurationProperties(prefix = "boilerplate.logging")
-public record MdcLoggingProperties(
+record MdcLoggingProperties(
         @DefaultValue({"/actuator/health", "/actuator/health/**"}) List<String> excludePaths
 ) {
 }

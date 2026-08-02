@@ -13,7 +13,7 @@ final class EnvKeyProvider implements KeyProvider {
     private final SecretKey activeKey;
 
     EnvKeyProvider(EncryptionProperties properties) {
-        String keyBase64 = properties.getKeyBase64();
+        String keyBase64 = properties.keyBase64();
         // @ConfigurationProperties 바인더는 미해석 placeholder(${...})를 예외 없이 리터럴로
         // 바인딩하므로, 환경변수 누락을 여기서 명시적으로 감지해 원인을 정확히 알려준다.
         // (이 검증이 없으면 "Base64 형식 오류"로 보고되어 운영자가 원인을 오독한다)

@@ -22,7 +22,7 @@ import org.springframework.web.util.pattern.PathPatternParser;
 @Slf4j
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
-public class MdcLoggingFilter extends OncePerRequestFilter {
+final class MdcLoggingFilter extends OncePerRequestFilter {
 
     private static final String TRACE_ID_KEY = "traceId";
     private static final String REQUEST_HEADER = "X-Request-Id";
@@ -31,7 +31,7 @@ public class MdcLoggingFilter extends OncePerRequestFilter {
 
     private final List<PathPattern> excludePatterns;
 
-    public MdcLoggingFilter(MdcLoggingProperties properties) {
+    MdcLoggingFilter(MdcLoggingProperties properties) {
         PathPatternParser parser = PathPatternParser.defaultInstance;
         this.excludePatterns = properties.excludePaths().stream().map(parser::parse).toList();
     }

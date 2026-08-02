@@ -10,7 +10,7 @@ import javax.crypto.spec.GCMParameterSpec;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AesGcmCipher {
+public final class AesGcmCipher {
 
     private static final String TRANSFORMATION = "AES/GCM/NoPadding";
     private static final int IV_LENGTH = 12;

@@ -31,7 +31,7 @@ public class CryptoAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(KeyProvider.class)
-    public KeyProvider envKeyProvider(EncryptionProperties properties) {
+    KeyProvider envKeyProvider(EncryptionProperties properties) {
         return new EnvKeyProvider(properties);
     }
 }
