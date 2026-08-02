@@ -16,6 +16,8 @@ public class ErrorResponse {
 
     private String code;
     private String message;
+    /** 로그 상관관계 ID(MdcLoggingFilter 발급) — 사용자 문의 시 이 값으로 서버 로그를 바로 찾는다. */
+    private String traceId;
     private OffsetDateTime timestamp;
     private List<FieldError> fieldErrors;
 
