@@ -14,7 +14,7 @@ import org.springframework.web.service.annotation.PostExchange;
 
 /**
  * 선언형 HTTP 클라이언트 레퍼런스 — 새 클라이언트를 만들 때 필요한 패턴을 복사한다.
- * 메서드 = 외부 API 계약 하나. 구현은 없고 HttpClientFactory 가 프록시를 생성한다.
+ * 메서드 = 외부 API 계약 하나. 구현은 없고 HTTP Service Group(@ImportHttpServices)이 프록시를 생성한다.
  */
 @HttpExchange
 public interface GoodsClient {
