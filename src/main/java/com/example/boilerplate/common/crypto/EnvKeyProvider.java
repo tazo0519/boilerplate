@@ -3,16 +3,16 @@ package com.example.boilerplate.common.crypto;
 import java.util.Base64;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import org.springframework.stereotype.Component;
 
-@Component
-public class EnvKeyProvider implements KeyProvider {
+// 기본 구현 — CryptoConfig 가 @ConditionalOnMissingBean 으로 등록한다.
+// 외부에는 KeyProvider 인터페이스만 노출한다(package-private, 구현 교체는 빈 재정의로).
+final class EnvKeyProvider implements KeyProvider {
 
     private static final int AES_256_KEY_BYTES = 32;
 
     private final SecretKey activeKey;
 
-    public EnvKeyProvider(EncryptionProperties properties) {
+    EnvKeyProvider(EncryptionProperties properties) {
         String keyBase64 = properties.getKeyBase64();
         // @ConfigurationProperties 바인더는 미해석 placeholder(${...})를 예외 없이 리터럴로
         // 바인딩하므로, 환경변수 누락을 여기서 명시적으로 감지해 원인을 정확히 알려준다.

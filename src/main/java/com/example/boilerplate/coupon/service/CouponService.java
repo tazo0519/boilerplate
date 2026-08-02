@@ -5,8 +5,9 @@ import com.example.boilerplate.coupon.dto.CouponResponse;
 import com.example.boilerplate.coupon.dto.CouponUpdateRequest;
 import com.example.boilerplate.coupon.entity.Coupon;
 import com.example.boilerplate.coupon.repository.CouponRepository;
+import com.example.boilerplate.coupon.CouponErrorCode;
 import com.example.boilerplate.exception.BusinessException;
-import com.example.boilerplate.exception.ErrorCode;
+import com.example.boilerplate.goods.GoodsErrorCode;
 import com.example.boilerplate.goods.entity.Goods;
 import com.example.boilerplate.goods.repository.GoodsRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,10 +27,10 @@ public class CouponService {
     @Transactional
     public CouponResponse create(CouponCreateRequest request) {
         if (couponRepository.existsByCode(request.getCode())) {
-            throw new BusinessException(ErrorCode.COUPON_DUPLICATED_CODE, "code=" + request.getCode());
+            throw new BusinessException(CouponErrorCode.COUPON_DUPLICATED_CODE, "code=" + request.getCode());
         }
         Goods goods = goodsRepository.findById(request.getGoodsId())
-                .orElseThrow(() -> new BusinessException(ErrorCode.GOODS_NOT_FOUND, "goodsId=" + request.getGoodsId()));
+                .orElseThrow(() -> new BusinessException(GoodsErrorCode.GOODS_NOT_FOUND, "goodsId=" + request.getGoodsId()));
         Coupon saved = couponRepository.save(request.toEntity(goods));
         return CouponResponse.from(saved);
     }
@@ -61,6 +62,6 @@ public class CouponService {
 
     private Coupon findById(Long id) {
         return couponRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(ErrorCode.COUPON_NOT_FOUND, "id=" + id));
+                .orElseThrow(() -> new BusinessException(CouponErrorCode.COUPON_NOT_FOUND, "id=" + id));
     }
 }

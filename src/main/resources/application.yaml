@@ -65,6 +65,13 @@ logging:
   pattern:
     console: "%d{HH:mm:ss.SSS} %5p [%X{traceId:-}] %-40.40logger{39} : %m%n"
 
+# --- 공통: 액세스 로그 제외 경로 (헬스체크 폴링 노이즈 제거 — MdcLoggingProperties) ---
+boilerplate:
+  logging:
+    exclude-paths:
+      - /actuator/health
+      - /actuator/health/**
+
 # --- 공통: OpenAPI/Swagger 경로 (비활성화는 프로필별) ---
 springdoc:
   api-docs:
