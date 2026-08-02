@@ -1,6 +1,6 @@
 package com.example.boilerplate.coupon.controller;
 
-import com.example.boilerplate.common.PagingController;
+import com.example.boilerplate.common.BaseController;
 import com.example.boilerplate.common.DataResponse;
 import com.example.boilerplate.common.Response;
 import com.example.boilerplate.coupon.dto.CouponCreateRequest;
@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/coupons")
 @RequiredArgsConstructor
-public class CouponController extends PagingController {
+public class CouponController extends BaseController {
 
     private final CouponService couponService;
 

@@ -10,14 +10,15 @@ public class Response<T> {
     private T content;
     private ErrorResponse errors;
 
-    public Response() {
+    // 생성은 ResponseBuilder/BaseController 를 통해서만 한다(package-private).
+    Response() {
     }
 
-    public Response(ErrorResponse errors) {
+    Response(ErrorResponse errors) {
         this.errors = errors;
     }
 
-    public Response(T content) {
+    Response(T content) {
         this.content = content;
     }
 }

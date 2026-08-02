@@ -12,15 +12,13 @@ public class DataResponse<T> {
     private Integer size;
     private Long totalSize;
 
-    public DataResponse() {
-
-    }
-
-    public DataResponse(List<T> items) { // 페이징 하지 않고 전체 응답용
+    // 생성은 ResponseBuilder/BaseController 를 통해서만 한다(package-private).
+    // items 없는 no-arg 생성자는 invalid 객체를 만들 수 있어 제공하지 않는다.
+    DataResponse(List<T> items) { // 페이징 하지 않고 전체 응답용
         this.items = items;
     }
 
-    public DataResponse(List<T> items, Integer page, Integer size, Long totalSize) {
+    DataResponse(List<T> items, Integer page, Integer size, Long totalSize) {
         this.items = items;
         this.page = page;
         this.size = size;
@@ -31,7 +29,7 @@ public class DataResponse<T> {
         if (size != null) {
             return size;
         }
-        // items 미설정(no-arg 생성/역직렬화) 시에도 NPE 없이 0 을 반환
+        // 방어: items 가 null 이어도 NPE 없이 0 을 반환
         return items != null ? items.size() : 0;
     }
 }

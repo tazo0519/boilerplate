@@ -2,7 +2,11 @@ package com.example.boilerplate.common;
 
 import java.util.List;
 
-public class ResponseBuilder {
+// 정적 유틸 — 인스턴스화·상속을 제한한다.
+public final class ResponseBuilder {
+
+	private ResponseBuilder() {
+	}
 
 	public static <T> Response<DataResponse<T>> build(List<T> items) {
 		return new Response<>(new DataResponse<>(items));
