@@ -62,6 +62,8 @@ spring:
 logging:
   level:
     root: INFO
+    # 405/404 시 프레임워크 자체 WARN(PageNotFound 로거)이 GlobalExceptionHandler 로그와 중복되어 침묵
+    org.springframework.web.servlet.PageNotFound: ERROR
   pattern:
     console: "%d{HH:mm:ss.SSS} %5p [%X{traceId:-}] %-40.40logger{39} : %m%n"
 

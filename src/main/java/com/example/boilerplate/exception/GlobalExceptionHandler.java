@@ -2,6 +2,7 @@ package com.example.boilerplate.exception;
 
 import com.example.boilerplate.common.ErrorResponse;
 import com.example.boilerplate.common.ResponseBuilder;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import java.time.OffsetDateTime;
@@ -11,16 +12,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import org.springframework.web.util.WebUtils;
 
 /**
  * 전역 예외 처리 — 모든 에러 응답을 단일 계약({@code Response.errors})으로 수렴시킨다.
@@ -47,16 +51,43 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @Override
     protected ResponseEntity<Object> handleExceptionInternal(Exception ex, Object body,
             HttpHeaders headers, HttpStatusCode statusCode, WebRequest request) {
+        // 부모의 가드 보존: 응답이 이미 커밋됐으면(스트리밍/비동기 부분 전송) 재쓰기를 포기한다.
+        if (request instanceof ServletWebRequest servletWebRequest) {
+            HttpServletResponse response = servletWebRequest.getResponse();
+            if (response != null && response.isCommitted()) {
+                log.warn("Response already committed. Ignoring: {}", ex.getMessage());
+                return null;
+            }
+        }
+        if (statusCode.is5xxServerError()) {
+            request.setAttribute(WebUtils.ERROR_EXCEPTION_ATTRIBUTE, ex, WebRequest.SCOPE_REQUEST);
+        }
         // 부모가 만든 ProblemDetail body 는 버리고 우리 봉투로 통일한다. 상태코드는 프레임워크 판단을 보존.
-        return respond(mapStatus(statusCode), statusCode, headers, null, ex);
+        return respond(CommonErrorCode.fromStatus(statusCode), statusCode, headers, null, ex);
     }
 
-    // 검증 실패는 fieldErrors 를 포함해야 하므로 별도 오버라이드
+    // 검증 실패(body)는 fieldErrors 를 포함해야 하므로 별도 오버라이드
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
             HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         return respond(CommonErrorCode.COMMON_INVALID_INPUT, status, headers,
                 toFieldErrors(ex.getBindingResult()), ex);
+    }
+
+    // 검증 실패(파라미터: @RequestParam/@PathVariable 제약)도 body 검증과 동일한 계약으로 —
+    // 오버라이드하지 않으면 fieldErrors 없이 일반 400 으로 뭉개진다(적대적 검증 실측).
+    @Override
+    protected ResponseEntity<Object> handleHandlerMethodValidationException(HandlerMethodValidationException ex,
+            HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        List<ErrorResponse.FieldError> fieldErrors = ex.getParameterValidationResults().stream()
+                .flatMap(result -> result.getResolvableErrors().stream()
+                        .map(error -> ErrorResponse.FieldError.builder()
+                                .field(result.getMethodParameter().getParameterName())
+                                .reason(error.getDefaultMessage())
+                                .build()))
+                .toList();
+        return respond(CommonErrorCode.COMMON_INVALID_INPUT, CommonErrorCode.COMMON_INVALID_INPUT.getStatus(),
+                headers, fieldErrors, ex);
     }
 
     // ==================== 애플리케이션 예외 (매핑 선언만 — 조립·로깅은 respond 가) ====================
@@ -109,22 +140,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .timestamp(OffsetDateTime.now())
                 .fieldErrors(fieldErrors)
                 .build();
-        return ResponseEntity.status(status).headers(headers).body(ResponseBuilder.build(body));
+        // Content-Type 프리셋: 렌더러가 Accept 협상을 건너뛰게 해 406(협상 실패)에서도
+        // 빈 body 대신 봉투가 나가게 한다(적대적 검증 실측 — 미지정 시 봉투 붕괴).
+        return ResponseEntity.status(status).headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(ResponseBuilder.build(body));
     }
 
     // ==================== 목적별 헬퍼 ====================
-
-    /** HTTP 상태(프레임워크 판단) → 우리 코드 체계 근사 매핑. 응답 상태코드 자체는 보존된다. */
-    private ErrorCode mapStatus(HttpStatusCode status) {
-        return switch (HttpStatus.resolve(status.value())) {
-            case NOT_FOUND -> CommonErrorCode.COMMON_NOT_FOUND;
-            case METHOD_NOT_ALLOWED -> CommonErrorCode.COMMON_METHOD_NOT_ALLOWED;
-            case UNSUPPORTED_MEDIA_TYPE -> CommonErrorCode.COMMON_UNSUPPORTED_MEDIA_TYPE;
-            case null, default -> status.is4xxClientError()
-                    ? CommonErrorCode.COMMON_BAD_REQUEST
-                    : CommonErrorCode.COMMON_INTERNAL_ERROR;
-        };
-    }
 
     /** 로깅 정책 — 예외 종류가 아니라 응답 상태코드가 심각도를 결정한다. */
     private void logByStatus(HttpStatusCode status, ErrorCode errorCode, String summary, Exception ex) {
