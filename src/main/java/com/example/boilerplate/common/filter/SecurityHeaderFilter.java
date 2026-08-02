@@ -12,7 +12,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE + 10)
-public class SecurityHeaderFilter extends OncePerRequestFilter {
+final class SecurityHeaderFilter extends OncePerRequestFilter {
 
     private static final String CSP_VALUE = "default-src 'self'; frame-ancestors 'none'";
     private static final String CACHE_CONTROL_VALUE = "no-cache, no-store, must-revalidate";

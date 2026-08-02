@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Converter
-public class EncryptedConverter implements AttributeConverter<String, String> {
+public final class EncryptedConverter implements AttributeConverter<String, String> {
 
     private final AesGcmCipher cipher;
 

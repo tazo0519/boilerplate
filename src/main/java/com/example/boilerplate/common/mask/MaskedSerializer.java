@@ -6,7 +6,7 @@ import tools.jackson.databind.BeanProperty;
 import tools.jackson.databind.SerializationContext;
 import tools.jackson.databind.ValueSerializer;
 
-public class MaskedSerializer extends ValueSerializer<String> {
+public final class MaskedSerializer extends ValueSerializer<String> {
 
     private final MaskType type;
 

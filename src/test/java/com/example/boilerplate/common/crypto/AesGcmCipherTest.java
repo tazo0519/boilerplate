@@ -16,9 +16,7 @@ class AesGcmCipherTest {
     private final AesGcmCipher cipher = newCipher();
 
     private static AesGcmCipher newCipher() {
-        EncryptionProperties props = new EncryptionProperties();
-        props.setKeyBase64(KEY_BASE64);
-        return new AesGcmCipher(new EnvKeyProvider(props));
+        return new AesGcmCipher(new EnvKeyProvider(new EncryptionProperties(KEY_BASE64)));
     }
 
     @Test

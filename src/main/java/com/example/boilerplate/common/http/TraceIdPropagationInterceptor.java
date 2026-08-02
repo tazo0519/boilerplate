@@ -9,7 +9,7 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Component;
 
 @Component
-public class TraceIdPropagationInterceptor implements ClientHttpRequestInterceptor {
+public final class TraceIdPropagationInterceptor implements ClientHttpRequestInterceptor {
 
     private static final String TRACE_ID_KEY = "traceId";
     private static final String REQUEST_HEADER = "X-Request-Id";

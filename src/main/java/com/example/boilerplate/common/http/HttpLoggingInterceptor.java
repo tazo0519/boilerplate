@@ -11,7 +11,7 @@ import java.io.IOException;
 
 @Slf4j
 @Component
-public class HttpLoggingInterceptor implements ClientHttpRequestInterceptor {
+public final class HttpLoggingInterceptor implements ClientHttpRequestInterceptor {
 
     @Override
     public ClientHttpResponse intercept(HttpRequest request,
