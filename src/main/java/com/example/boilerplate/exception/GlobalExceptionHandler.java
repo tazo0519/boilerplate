@@ -33,7 +33,7 @@ import org.springframework.web.util.WebUtils;
  * 전부 단일 경로 {@link #respond} 가 수행한다. 새 예외 처리가 필요하면 핸들러 한 줄만 추가한다.
  *
  * <p>{@link ResponseEntityExceptionHandler} 를 상속해 프레임워크 예외(존재하지 않는 경로 404,
- * 잘못된 body 400, 허용 안 된 메서드 405 등 약 20종)도 <b>올바른 상태코드 + 동일 봉투</b>로
+ * 잘못된 body 400, 허용 안 된 메서드 405 등 약 20종)도 <b>올바른 상태코드 + 동일 래퍼</b>로
  * 응답한다. 상속 없이는 catch-all 로 흘러 전부 500 으로 둔갑한다(부팅 프로브로 실측).
  *
  * <p>로깅 규약(상태코드 기준으로 일괄 적용): 4xx = warn·스택 없음(클라이언트 잘못),
@@ -62,7 +62,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         if (statusCode.is5xxServerError()) {
             request.setAttribute(WebUtils.ERROR_EXCEPTION_ATTRIBUTE, ex, WebRequest.SCOPE_REQUEST);
         }
-        // 부모가 만든 ProblemDetail body 는 버리고 우리 봉투로 통일한다. 상태코드는 프레임워크 판단을 보존.
+        // 부모가 만든 ProblemDetail body 는 버리고 우리 래퍼로 통일한다. 상태코드는 프레임워크 판단을 보존.
         return respond(CommonErrorCode.fromStatus(statusCode), statusCode, headers, null, ex);
     }
 
@@ -141,7 +141,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .fieldErrors(fieldErrors)
                 .build();
         // Content-Type 프리셋: 렌더러가 Accept 협상을 건너뛰게 해 406(협상 실패)에서도
-        // 빈 body 대신 봉투가 나가게 한다(적대적 검증 실측 — 미지정 시 봉투 붕괴).
+        // 빈 body 대신 래퍼가 나가게 한다(적대적 검증 실측 — 미지정 시 래퍼 붕괴).
         return ResponseEntity.status(status).headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(ResponseBuilder.build(body));

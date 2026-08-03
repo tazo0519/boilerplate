@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * ERROR 디스패치(/error)도 봉투 계약으로 수렴시킨다 — Boot 의 BasicErrorController 를 대체.
+ * ERROR 디스패치(/error)도 래퍼 계약으로 수렴시킨다 — Boot 의 BasicErrorController 를 대체.
  *
  * <p>대상: MVC/advice 에 도달하지 못하고 서블릿 컨테이너의 sendError 로 빠진 에러
  * (필터에서 던져진 예외 등)와 /error 직접 호출. BasicErrorController 는 다른 형태의 JSON 을
