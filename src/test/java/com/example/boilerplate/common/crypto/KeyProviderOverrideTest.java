@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.example.boilerplate.TestcontainersConfiguration;
 import javax.crypto.spec.SecretKeySpec;
 import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -36,7 +37,8 @@ class KeyProviderOverrideTest {
     private ApplicationContext context;
 
     @Test
-    void 자체_KeyProvider_빈을_정의하면_기본_EnvKeyProvider_가_물러난다() {
+    @DisplayName("자체 KeyProvider 빈을 정의하면 기본 EnvKeyProvider 가 물러난다")
+    void customKeyProviderBeanBacksOffDefaultEnvKeyProvider() {
         // 물러나지 않으면 이 테스트는 여기까지 오지도 못한다(빈 중복으로 컨텍스트 기동 실패).
         assertThat(context.getBeansOfType(KeyProvider.class)).hasSize(1);
         assertThat(keyProvider).isNotInstanceOf(EnvKeyProvider.class);

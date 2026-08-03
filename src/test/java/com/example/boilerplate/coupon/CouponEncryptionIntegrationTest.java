@@ -11,6 +11,7 @@ import jakarta.persistence.EntityManager;
 import java.time.OffsetDateTime;
 import java.util.Base64;
 import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -45,7 +46,8 @@ class CouponEncryptionIntegrationTest {
     private JdbcTemplate jdbcTemplate;
 
     @Test
-    void 전화번호는_DB_에_암호문으로_저장되고_조회_시_평문으로_복원된다() {
+    @DisplayName("전화번호는 DB 에 암호문으로 저장되고 조회 시 평문으로 복원된다")
+    void phoneIsStoredEncryptedAndRestoredToPlaintextOnLoad() {
         Coupon saved = couponRepository.save(Coupon.builder()
                 .code("ENC-TEST-001")
                 .name("암호화 왕복 테스트")

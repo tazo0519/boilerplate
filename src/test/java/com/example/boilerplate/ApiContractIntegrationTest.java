@@ -13,6 +13,7 @@ import com.example.testsupport.BoomTestController;
 import jakarta.servlet.RequestDispatcher;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -45,7 +46,8 @@ class ApiContractIntegrationTest {
     // ==================== 상관관계·성공 경로 계약 ====================
 
     @Test
-    void 응답_헤더와_에러_본문의_traceId_는_같은_값이다() throws Exception {
+    @DisplayName("응답 헤더와 에러 본문의 traceId 는 같은 값이다")
+    void traceIdInHeaderAndErrorBodyAreEqual() throws Exception {
         // 뮤테이션 검증 S1: '존재' 단언만으로는 본문 traceId 를 상수로 바꿔도 통과했다 — 동등성을 고정.
         MvcResult result = mockMvc.perform(get("/nonexistent"))
                 .andExpect(status().isNotFound())
@@ -60,7 +62,8 @@ class ApiContractIntegrationTest {
     }
 
     @Test
-    void 페이징_요청은_page_size_메타데이터를_정확히_반영한다() throws Exception {
+    @DisplayName("페이징 요청은 page/size 메타데이터를 정확히 반영한다")
+    void pagingRequestReflectsPageAndSizeMetadata() throws Exception {
         // 뮤테이션 검증 S2: respond(Page) 에서 page/size 를 맞바꿔도 전 스위트가 통과했다 — 매핑을 고정.
         mockMvc.perform(get("/coupons").param("page", "2").param("size", "7"))
                 .andExpect(status().isOk())
@@ -74,7 +77,8 @@ class ApiContractIntegrationTest {
     // ==================== 에러 계약 ====================
 
     @Test
-    void 존재하지_않는_경로는_404_래퍼로_응답한다() throws Exception {
+    @DisplayName("존재하지 않는 경로는 404 래퍼로 응답한다")
+    void unknownPathRespondsWith404Wrapper() throws Exception {
         mockMvc.perform(get("/nonexistent"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.errors.code").value("COMMON_NOT_FOUND"))
@@ -84,7 +88,8 @@ class ApiContractIntegrationTest {
     }
 
     @Test
-    void 잘못된_JSON_body_는_400_래퍼로_응답한다() throws Exception {
+    @DisplayName("잘못된 JSON body 는 400 래퍼로 응답한다")
+    void malformedJsonBodyRespondsWith400Wrapper() throws Exception {
         mockMvc.perform(post("/coupons").contentType(MediaType.APPLICATION_JSON).content("{invalid"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.code").value("COMMON_BAD_REQUEST"))
@@ -92,7 +97,8 @@ class ApiContractIntegrationTest {
     }
 
     @Test
-    void 허용되지_않은_메서드는_405_래퍼와_Allow_헤더로_응답한다() throws Exception {
+    @DisplayName("허용되지 않은 메서드는 405 래퍼와 Allow 헤더로 응답한다")
+    void methodNotAllowedRespondsWith405WrapperAndAllowHeader() throws Exception {
         mockMvc.perform(delete("/goods"))
                 .andExpect(status().isMethodNotAllowed())
                 .andExpect(jsonPath("$.errors.code").value("COMMON_METHOD_NOT_ALLOWED"))
@@ -100,7 +106,8 @@ class ApiContractIntegrationTest {
     }
 
     @Test
-    void 협상_실패_406_도_빈_body_가_아니라_JSON_래퍼로_응답한다() throws Exception {
+    @DisplayName("협상 실패(406)도 빈 body 가 아니라 JSON 래퍼로 응답한다")
+    void notAcceptableRespondsWithJsonWrapperInsteadOfEmptyBody() throws Exception {
         // 적대적 검증 F1: Content-Type 프리셋이 없으면 렌더러가 재예외를 던져 빈 body 로 붕괴했다.
         mockMvc.perform(get("/coupons").accept(MediaType.APPLICATION_XML))
                 .andExpect(status().isNotAcceptable())
@@ -109,7 +116,8 @@ class ApiContractIntegrationTest {
     }
 
     @Test
-    void 검증_실패는_fieldErrors_를_포함한_400_래퍼로_응답한다() throws Exception {
+    @DisplayName("검증 실패는 fieldErrors 를 포함한 400 래퍼로 응답한다")
+    void validationFailureRespondsWith400WrapperIncludingFieldErrors() throws Exception {
         mockMvc.perform(post("/coupons").contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.code").value("COMMON_INVALID_INPUT"))
@@ -119,7 +127,8 @@ class ApiContractIntegrationTest {
     }
 
     @Test
-    void 도메인_예외는_도메인_코드와_해당_상태코드로_응답한다() throws Exception {
+    @DisplayName("도메인 예외는 도메인 코드와 해당 상태코드로 응답한다")
+    void domainExceptionRespondsWithDomainCodeAndStatus() throws Exception {
         mockMvc.perform(get("/coupons/999999"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.errors.code").value("COUPON_NOT_FOUND"))
@@ -127,14 +136,16 @@ class ApiContractIntegrationTest {
     }
 
     @Test
-    void 존재하지_않는_정렬_필드는_500_이_아니라_400_으로_응답한다() throws Exception {
+    @DisplayName("존재하지 않는 정렬 필드는 500 이 아니라 400 으로 응답한다")
+    void unknownSortFieldRespondsWith400InsteadOf500() throws Exception {
         mockMvc.perform(get("/coupons").param("sort", "nonexistentField"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.code").value("COMMON_BAD_REQUEST"));
     }
 
     @Test
-    void 미처리_예외는_500_래퍼로_응답하며_내부_정보를_노출하지_않는다() throws Exception {
+    @DisplayName("미처리 예외는 500 래퍼로 응답하며 내부 정보를 노출하지 않는다")
+    void unhandledExceptionRespondsWith500WrapperWithoutInternalDetails() throws Exception {
         mockMvc.perform(get("/test-only/boom"))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.errors.code").value("COMMON_INTERNAL_ERROR"))
@@ -143,7 +154,8 @@ class ApiContractIntegrationTest {
     }
 
     @Test
-    void ERROR_디스패치도_래퍼로_수렴한다() throws Exception {
+    @DisplayName("ERROR 디스패치도 래퍼로 수렴한다")
+    void errorDispatchConvergesToWrapper() throws Exception {
         // 컨테이너 sendError 경로 모사 — ERROR_STATUS_CODE 속성이 있으면 그 상태를 보존한다.
         mockMvc.perform(get("/error").requestAttr(RequestDispatcher.ERROR_STATUS_CODE, 400))
                 .andExpect(status().isBadRequest())
@@ -151,7 +163,8 @@ class ApiContractIntegrationTest {
     }
 
     @Test
-    void 에러_컨텍스트_없는_error_직접_호출은_가짜_500_대신_404_다() throws Exception {
+    @DisplayName("에러 컨텍스트 없는 /error 직접 호출은 가짜 500 대신 404 다")
+    void directErrorCallWithoutContextRespondsWith404InsteadOfFake500() throws Exception {
         // 적대적 검증 F2: BasicErrorController 는 이 경우 status=999 를 500 으로 보고했다.
         mockMvc.perform(get("/error"))
                 .andExpect(status().isNotFound())

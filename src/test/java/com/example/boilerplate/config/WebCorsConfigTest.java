@@ -7,6 +7,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.example.boilerplate.common.web.CorsProperties;
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -18,7 +19,8 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 class WebCorsConfigTest {
 
     @Test
-    void 와일드카드와_credentials_조합은_부팅_시_거부된다() {
+    @DisplayName("와일드카드와 credentials 조합은 부팅 시 거부된다")
+    void wildcardWithCredentialsIsRejectedAtStartup() {
         WebCorsConfig config = new WebCorsConfig(props(List.of("*"), true));
 
         assertThatThrownBy(() -> config.addCorsMappings(new InspectableCorsRegistry()))
@@ -27,7 +29,8 @@ class WebCorsConfigTest {
     }
 
     @Test
-    void 명시_도메인은_credentials_와_함께_정상_등록된다() {
+    @DisplayName("명시 도메인은 credentials 와 함께 정상 등록된다")
+    void explicitOriginIsRegisteredWithCredentials() {
         InspectableCorsRegistry registry = new InspectableCorsRegistry();
         new WebCorsConfig(props(List.of("https://app.example.com"), true)).addCorsMappings(registry);
 
@@ -38,7 +41,8 @@ class WebCorsConfigTest {
     }
 
     @Test
-    void 허용_Origin_이_없으면_CORS_매핑을_등록하지_않는다() {
+    @DisplayName("허용 Origin 이 없으면 CORS 매핑을 등록하지 않는다")
+    void noAllowedOriginsRegistersNoCorsMapping() {
         InspectableCorsRegistry registry = new InspectableCorsRegistry();
         // 환경변수 미설정 시 빈 문자열이 유입되는 케이스 포함
         new WebCorsConfig(props(List.of(""), true)).addCorsMappings(registry);

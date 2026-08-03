@@ -2,6 +2,7 @@ package com.example.boilerplate.common.mask;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -27,7 +28,8 @@ class MaskedSerializerTest {
     }
 
     @Test
-    void Masked_필드는_타입별_규칙으로_가려지고_일반_필드는_그대로다() {
+    @DisplayName("@Masked 필드는 타입별 규칙으로 가려지고 일반 필드는 그대로다")
+    void maskedFieldsAreMaskedByTypeAndPlainFieldsUntouched() {
         String json = mapper.writeValueAsString(new Dto());
 
         assertThat(json).contains("\"010-****-5678\"");
@@ -39,7 +41,8 @@ class MaskedSerializerTest {
     }
 
     @Test
-    void null_값은_null_로_직렬화된다() {
+    @DisplayName("null 값은 null 로 직렬화된다")
+    void nullValueIsSerializedAsNull() {
         Dto dto = new Dto();
         dto.phone = null;
         assertThat(mapper.writeValueAsString(dto)).contains("\"phone\":null");

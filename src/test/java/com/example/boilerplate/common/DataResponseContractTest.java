@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -16,26 +17,30 @@ class DataResponseContractTest {
     private final JsonMapper mapper = JsonMapper.builder().build();
 
     @Test
-    void 페이징_없는_목록은_page_totalSize_필드를_생략한다() {
+    @DisplayName("페이징 없는 목록은 page/totalSize 필드를 생략한다")
+    void unpagedListOmitsPageAndTotalSizeFields() {
         String json = mapper.writeValueAsString(ResponseBuilder.build(List.of("a", "b")));
         assertThat(json).isEqualTo("{\"content\":{\"items\":[\"a\",\"b\"],\"size\":2}}");
     }
 
     @Test
-    void 페이징_목록은_메타필드_4개를_모두_포함한다() {
+    @DisplayName("페이징 목록은 메타필드 4개를 모두 포함한다")
+    void pagedListIncludesAllMetaFields() {
         String json = mapper.writeValueAsString(ResponseBuilder.build(List.of("a"), 0, 20, 93L));
         assertThat(json).contains("\"page\":0").contains("\"size\":20").contains("\"totalSize\":93");
     }
 
     @Test
-    void null_리스트가_유입돼도_items_는_항상_배열이다() {
+    @DisplayName("null 리스트가 유입돼도 items 는 항상 배열이다")
+    void itemsIsAlwaysArrayEvenWhenNullListGiven() {
         List<String> nullList = null;
         String json = mapper.writeValueAsString(ResponseBuilder.build(nullList));
         assertThat(json).contains("\"items\":[]").contains("\"size\":0");
     }
 
     @Test
-    void 생성_후_원본_리스트를_변조해도_응답에_주입되지_않는다() {
+    @DisplayName("생성 후 원본 리스트를 변조해도 응답에 주입되지 않는다")
+    void mutatingSourceListAfterBuildDoesNotAffectResponse() {
         List<String> mutable = new ArrayList<>(List.of("x"));
         Response<DataResponse<String>> response = ResponseBuilder.build(mutable);
         mutable.add("INJECTED-AFTER-BUILD");
@@ -44,7 +49,8 @@ class DataResponseContractTest {
     }
 
     @Test
-    void 단건_응답은_errors_를_에러_응답은_content_를_생략한다() {
+    @DisplayName("단건 응답은 errors 를, 에러 응답은 content 를 생략한다")
+    void contentAndErrorsAreMutuallyExclusive() {
         assertThat(mapper.writeValueAsString(ResponseBuilder.build("hello")))
                 .isEqualTo("{\"content\":\"hello\"}");
 
