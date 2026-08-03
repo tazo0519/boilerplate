@@ -1,5 +1,6 @@
-package com.example.boilerplate.exception;
+package com.example.boilerplate;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -8,9 +9,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.example.boilerplate.TestcontainersConfiguration;
 import com.example.testsupport.BoomTestController;
 import jakarta.servlet.RequestDispatcher;
+import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,21 +21,57 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 /**
- * 에러 응답 계약 회귀 테스트 — "어디서 실패하든 동일 래퍼({@code errors.code/message/traceId/timestamp})"를
- * 고정한다. 각 케이스는 적대적 검증(부팅 프로브)에서 실측된 동작이며, 이 테스트가 깨지면
- * Boot/Framework 업그레이드 등으로 에러 계약이 회귀한 것이다.
+ * HTTP API 와이어 계약 회귀 테스트.
+ *
+ * <p>① 에러 계약 — "어디서 실패하든 동일 래퍼({@code errors.code/message/traceId/timestamp})".
+ * 각 케이스는 적대적 검증(부팅 프로브)에서 실측된 동작이다.
+ * ② traceId 상관관계 — 응답 헤더와 에러 본문의 traceId 가 같은 값(로그 추적 루프의 핵심).
+ * ③ 페이징 성공 경로 — respond(Page) 매핑 계층.
+ * ②③은 뮤테이션 검증에서 "생존"으로 실증된 사각지대를 메운 것이다.
  */
 @Tag("integration")
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Import({TestcontainersConfiguration.class, BoomTestController.class}) // Boom 은 스캔 밖 패키지 — @Import 로만 등록
-class ErrorContractIntegrationTest {
+class ApiContractIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    // ==================== 상관관계·성공 경로 계약 ====================
+
+    @Test
+    void 응답_헤더와_에러_본문의_traceId_는_같은_값이다() throws Exception {
+        // 뮤테이션 검증 S1: '존재' 단언만으로는 본문 traceId 를 상수로 바꿔도 통과했다 — 동등성을 고정.
+        MvcResult result = mockMvc.perform(get("/nonexistent"))
+                .andExpect(status().isNotFound())
+                .andReturn();
+
+        String headerTraceId = result.getResponse().getHeader("X-Trace-Id");
+        String bodyTraceId = com.jayway.jsonpath.JsonPath.read(
+                result.getResponse().getContentAsString(StandardCharsets.UTF_8), "$.errors.traceId");
+
+        assertThat(headerTraceId).isNotBlank();
+        assertThat(bodyTraceId).isEqualTo(headerTraceId);
+    }
+
+    @Test
+    void 페이징_요청은_page_size_메타데이터를_정확히_반영한다() throws Exception {
+        // 뮤테이션 검증 S2: respond(Page) 에서 page/size 를 맞바꿔도 전 스위트가 통과했다 — 매핑을 고정.
+        mockMvc.perform(get("/coupons").param("page", "2").param("size", "7"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.items").isArray())
+                .andExpect(jsonPath("$.content.page").value(2))
+                .andExpect(jsonPath("$.content.size").value(7))
+                .andExpect(jsonPath("$.content.totalSize").value(0))
+                .andExpect(jsonPath("$.errors").doesNotExist());
+    }
+
+    // ==================== 에러 계약 ====================
 
     @Test
     void 존재하지_않는_경로는_404_래퍼로_응답한다() throws Exception {
