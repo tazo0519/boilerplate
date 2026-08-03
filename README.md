@@ -26,6 +26,8 @@ docker compose up -d postgres
 - Swagger: `http://localhost:8080/swagger-ui.html` (local/dev/stg 만 — prod 차단)
 - 헬스체크: `/actuator/health/readiness`, `/actuator/health/liveness` (액세스 로그에서 제외됨)
 
+> **참고**: 로컬에서 `GET /goods` 는 예제 외부 API(더미 주소) 호출을 포함하므로 **502(`COMMON_EXTERNAL_API_ERROR`) 봉투가 나오는 것이 정상**이다 — 외부 연동 에러 계약을 시연하는 예제. 또한 `docker-compose.yml` 의 `container_name` 이 고정이라 같은 호스트에서 이 저장소 복사본 두 개를 동시에 띄울 수 없다.
+
 ## 2. 새 서비스 시작 체크리스트 (복사 후 순서대로)
 
 ### 2-1. 이름 치환
@@ -37,16 +39,18 @@ docker compose up -d postgres
 | `src/main/resources/META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` | `CryptoAutoConfiguration` FQCN (패키지 rename 반영) |
 | `application.yaml` | `spring.application.name` |
 | 프로퍼티 prefix `boilerplate.*` | `EncryptionProperties`(`boilerplate.security.crypto`) · `CorsProperties`(`boilerplate.web.cors`) · `MdcLoggingProperties`(`boilerplate.logging`) 의 prefix 와 각 yaml 을 **함께** 변경 (또는 그대로 둬도 동작함) |
-| `docker-compose.yml` | 컨테이너명, DB 명/계정 (로컬 더미) |
+| `docker-compose.yml` | 컨테이너명, DB 명/계정 — **healthcheck 의 `pg_isready -U ... -d ...` 계정도 함께** (누락 시 healthcheck 영구 실패 → app 이 영원히 기동 안 함) |
+| `application-local.yaml` | datasource default 값(`${DB_NAME:...}` 등 — compose 와 동일하게), `logging.level.com.example.boilerplate`(패키지 rename 시 로거 키도 — 누락해도 동작하나 로컬 DEBUG 로그가 조용히 사라짐) |
+| `.env.example` | `DB_NAME`/`DB_USERNAME` 등 기본값 (compose 와 동일하게) |
 | `taskdef.json` | `family`, `awslogs-group`, SSM 파라미터 경로(`/boilerplate/...`) |
 | `application-local.yaml` / `application-test.yaml` | 로컬·테스트용 더미 암호화 키 교체(선택 — 32byte Base64) |
 
 ### 2-2. 예제 도메인 제거 (goods ↔ coupon 은 FK 로 결합되어 있으므로 함께 제거)
 1. 삭제: `coupon/`, `goods/`, `client/goods/` 패키지, `GoodsRepositoryTest`
-2. `config/HttpServiceClientsConfig` 에서 `@ImportHttpServices(group = "goods", ...)` 제거
+2. `config/HttpServiceClientsConfig` 에서 `@ImportHttpServices(group = "goods", ...)` 와 **상단의 `import ...client.goods.GoodsClient;` 를 함께 제거** (import 잔존 시 컴파일 에러 — 미사용이 된 `ImportHttpServices` import 도 정리)
 3. `application.yaml` 에서 `spring.http.serviceclient.goods` 블록 제거
 4. `db/schema.sql` 에서 `goods`/`coupons` 테이블·시드 제거
-5. 도메인 에러 코드(`CouponErrorCode`/`GoodsErrorCode`)는 도메인 패키지와 함께 사라짐 — 공통 코드는 무손상
+5. 도메인 에러 코드(`CouponErrorCode`/`GoodsErrorCode`)는 도메인 패키지와 함께 사라짐 — 공통 코드는 무손상 (`exception/ErrorCode` javadoc 의 coupon 예시 언급은 무해한 잔존)
 
 ### 2-3. 운영 배포 전 준비
 - SSM 파라미터 생성: `/{서비스명}/{env}/db_host,db_port,db_name,db_username,db_password,encryption_key_base64`(SecureString, 32byte Base64) — 키 미주입 시 **부팅이 의도적으로 실패**한다(fail-fast)
