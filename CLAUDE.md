@@ -27,11 +27,12 @@ docker compose up -d postgres && SPRING_PROFILES_ACTIVE=local ./gradlew bootRun
 - **테스트**: 영어 camelCase 메서드명 + `@DisplayName("한글 명세")`. 한글 메서드명 금지. 통합 테스트는 `@Tag("integration")` + `@Import(TestcontainersConfiguration.class)`.
 - **외부 연동**: `client/{대상}/` 에 `@HttpExchange` 인터페이스 + record DTO(`Api` 접미사) + 파트너별 엔벨로프. 등록은 `HttpServiceClientsConfig` 의 `@ImportHttpServices` 한 줄 + `spring.http.serviceclient.{대상}.*` yaml. **외부 DTO 는 client 패키지 밖으로 노출 금지**(anti-corruption). 서비스에서 try/catch 하지 않는다(에러 변환은 공통층).
 - **에러 코드**: 공통은 `CommonErrorCode`, 도메인 코드는 **해당 도메인 패키지의 enum** (`implements ErrorCode`) — 공통 파일을 수정하지 않는다.
-- **설정**: `@ConfigurationProperties` 는 생성자 바인딩 record(불변). 시크릿은 환경변수/SSM — yaml 에 default 를 두지 않는다(fail-fast). 기본 빈 제공은 auto-configuration(`@AutoConfiguration` + imports 파일) + `@ConditionalOnMissingBean` — 일반 `@Configuration` 의 조건부 빈은 등록 순서 비보장으로 금지.
+- **설정**: `@ConfigurationProperties` 는 생성자 바인딩 record(불변). 시크릿은 환경변수/SSM — **cloud/prod 프로필의** yaml 에 default 를 두지 않는다(fail-fast). local/test 의 더미 키·default 는 **의도된 것**이니 제거하지 말 것. 기본 빈 제공은 auto-configuration(`@AutoConfiguration` + imports 파일) + `@ConditionalOnMissingBean` — 일반 `@Configuration` 의 조건부 빈은 등록 순서 비보장으로 금지.
+- **스키마**: `src/main/resources/db/schema.sql` 이 단일 소스(`ddl-auto: none`, Flyway 미도입). **엔티티를 추가/변경하면 schema.sql 의 DDL 도 함께 동기화** — 안 하면 integrationTest(운영 DDL 드리프트 검증)가 반드시 깨진다.
 - 주석·커밋 메시지는 한국어. 주석은 "왜"를 남긴다(적대적 검증 실측 결과 인용 스타일 유지).
 
 ## 이 스택의 함정 (실측으로 확인된 것)
-- **Jackson 3** (`tools.jackson.*`) — databind 는 신규 패키지, 어노테이션(`@JsonInclude` 등)은 `com.fasterxml` 유지. 커스텀 시리얼라이저는 `tools.jackson.databind.ValueSerializer`.
+- **Jackson 3** (`tools.jackson.*`) — databind 는 신규 패키지. 어노테이션은 **이원화**: jackson-annotations 계열(`@JsonInclude` 등)은 `com.fasterxml` 유지, **databind 계열(`@JsonSerialize` 등)은 `tools.jackson.databind.annotation`**. 커스텀 시리얼라이저는 `tools.jackson.databind.ValueSerializer`. ⚠️ springdoc 이 Jackson 2 databind 도 classpath 에 올려두므로 **잘못된 `com.fasterxml...databind` import 도 컴파일에 성공하고 조용히 무시된다** — import 문을 눈으로 확인할 것.
 - **Boot 4 모듈화**: `@AutoConfigureMockMvc` → `spring-boot-starter-webmvc-test` + `org.springframework.boot.webmvc.test.autoconfigure`. `ErrorController` → `org.springframework.boot.webmvc.error`. `PropertyReferenceException` → `org.springframework.data.core`.
 - **Framework 7 은 `@Controller` 스테레오타입 없이는 핸들러 미인식** (`@RequestMapping` 클래스만으로 불가).
 - **테스트 전용 컨트롤러**는 스캔 밖 패키지(`com.example.testsupport`) + `@Import` — 스캔 범위 안에 두면 이중 등록(Ambiguous mapping). 테스트 클래스도 컴포넌트 스캔 대상임을 잊지 말 것.
