@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.example.boilerplate.TestcontainersConfiguration;
 import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,7 +25,8 @@ class GoodsRepositoryTest {
     private GoodsRepository goodsRepository;
 
     @Test
-    void 시드된_상품_3건이_조회된다() {
+    @DisplayName("시드된 상품 3건이 조회된다")
+    void seededGoodsAreQueryable() {
         assertThat(goodsRepository.count()).isEqualTo(3);
     }
 }

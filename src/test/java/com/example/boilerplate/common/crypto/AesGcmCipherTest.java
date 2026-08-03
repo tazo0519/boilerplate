@@ -2,6 +2,7 @@ package com.example.boilerplate.common.crypto;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -20,7 +21,8 @@ class AesGcmCipherTest {
     }
 
     @Test
-    void 암호화_후_복호화하면_원문이_복원된다() {
+    @DisplayName("암호화 후 복호화하면 원문이 복원된다")
+    void encryptThenDecryptRestoresPlaintext() {
         String plaintext = "010-1234-5678";
 
         String encrypted = cipher.encrypt(plaintext);
@@ -30,7 +32,8 @@ class AesGcmCipherTest {
     }
 
     @Test
-    void 같은_평문도_매번_다른_암호문이_된다() {
+    @DisplayName("같은 평문도 매번 다른 암호문이 된다")
+    void samePlaintextProducesDifferentCiphertextEachTime() {
         // IV 난수화로 동일 평문이라도 암호문이 달라야 한다
         String plaintext = "동일 평문";
 
@@ -38,7 +41,8 @@ class AesGcmCipherTest {
     }
 
     @Test
-    void null_은_그대로_null_로_처리된다() {
+    @DisplayName("null 은 그대로 null 로 처리된다")
+    void nullPassesThroughAsNull() {
         assertThat(cipher.encrypt(null)).isNull();
         assertThat(cipher.decrypt(null)).isNull();
     }
