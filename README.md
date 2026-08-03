@@ -4,7 +4,7 @@ Spring Boot 모놀리식 서비스 보일러플레이트 — **복사해서 새 
 
 - **스택**: Java 21 · Spring Boot 4.1 (Framework 7) · PostgreSQL 16 · Gradle
 - **배포 전제**: ALB + ECS Fargate + Docker (로컬은 docker compose)
-- **설계 관심사**: ① 제한(메서드·생성자를 의도된 용도로만 쓰게 표면 최소화) ② 커스텀 훅(보일러플레이트 수정 없이 변형) ③ 응답 봉투 계약의 전층 수렴
+- **설계 관심사**: ① 제한(메서드·생성자를 의도된 용도로만 쓰게 표면 최소화) ② 커스텀 훅(보일러플레이트 수정 없이 변형) ③ 응답 래퍼 계약의 전층 수렴
 
 ---
 
@@ -26,7 +26,7 @@ docker compose up -d postgres
 - Swagger: `http://localhost:8080/swagger-ui.html` (local/dev/stg 만 — prod 차단)
 - 헬스체크: `/actuator/health/readiness`, `/actuator/health/liveness` (액세스 로그에서 제외됨)
 
-> **참고**: 로컬에서 `GET /goods` 는 예제 외부 API(더미 주소) 호출을 포함하므로 **502(`COMMON_EXTERNAL_API_ERROR`) 봉투가 나오는 것이 정상**이다 — 외부 연동 에러 계약을 시연하는 예제. 또한 `docker-compose.yml` 의 `container_name` 이 고정이라 같은 호스트에서 이 저장소 복사본 두 개를 동시에 띄울 수 없다.
+> **참고**: 로컬에서 `GET /goods` 는 예제 외부 API(더미 주소) 호출을 포함하므로 **502(`COMMON_EXTERNAL_API_ERROR`) 래퍼가 나오는 것이 정상**이다 — 외부 연동 에러 계약을 시연하는 예제. 또한 `docker-compose.yml` 의 `container_name` 이 고정이라 같은 호스트에서 이 저장소 복사본 두 개를 동시에 띄울 수 없다.
 
 ## 2. 새 서비스 시작 체크리스트 (복사 후 순서대로)
 
@@ -62,8 +62,8 @@ docker compose up -d postgres
 
 | 영역 | 내용 |
 |---|---|
-| **응답 계약** | `Response<T>`(content/errors 봉투) + `DataResponse`(목록·페이징, items 는 항상 배열) + 컨트롤러는 `BaseController.respond(...)` 한 줄 |
-| **에러 계약** | 앱 예외·프레임워크 예외(~20종)·필터/컨테이너 레벨까지 **동일 봉투로 수렴** (`GlobalExceptionHandler` + `ErrorDispatchController`). 모든 에러 본문에 `traceId`. 4xx=warn/5xx=error+스택 로깅 규약 |
+| **응답 계약** | `Response<T>`(content/errors 래퍼) + `DataResponse`(목록·페이징, items 는 항상 배열) + 컨트롤러는 `BaseController.respond(...)` 한 줄 |
+| **에러 계약** | 앱 예외·프레임워크 예외(~20종)·필터/컨테이너 레벨까지 **동일 래퍼로 수렴** (`GlobalExceptionHandler` + `ErrorDispatchController`). 모든 에러 본문에 `traceId`. 4xx=warn/5xx=error+스택 로깅 규약 |
 | **에러 코드** | `ErrorCode` 인터페이스 — 공통은 `CommonErrorCode`, 도메인 코드는 각 도메인 패키지의 enum (공통 수정 없이 추가) |
 | **컬럼 암호화** | AES-256-GCM(`@Convert(converter = EncryptedConverter.class)` 한 줄) + `KeyProvider` 교체 훅 + 응답 마스킹 `@Masked(MaskType.PHONE)` |
 | **외부 연동** | HTTP Service Group — `@HttpExchange` 인터페이스 + `@ImportHttpServices` 한 줄 + yaml(그룹별 base-url/헤더/타임아웃). 4xx/5xx→`ExternalApiException` 자동 변환, traceId 전파·로깅 자동 |
@@ -98,11 +98,11 @@ BaseController.java, ErrorResponse.java
 - 에러 응답은 **예외를 던지는 것** 하나로 통일 — 컨트롤러에서 에러 바디를 직접 조립하지 않는다
 
 ### RFC 9457(Problem Details) 을 쓰지 않는 이유
-기계가 분기할 안정적 `code` 원칙은 채택했으나, `application/problem+json` top-level 전환은 자사 프론트 대상 API 라 실익이 낮아 봉투 계약을 유지한다. 외부 공개 API 가 생기면 재검토.
+기계가 분기할 안정적 `code` 원칙은 채택했으나, `application/problem+json` top-level 전환은 자사 프론트 대상 API 라 실익이 낮아 래퍼 계약을 유지한다. 외부 공개 API 가 생기면 재검토.
 
 ## 6. 알려진 한계 / 로드맵
 
-- **Tomcat 요청 파싱 실패**(잘못된 percent-encoding URI 등)는 앱 도달 전이라 봉투 밖 — 유일하게 남은 에러 계약 한계
+- **Tomcat 요청 파싱 실패**(잘못된 percent-encoding URI 등)는 앱 도달 전이라 래퍼 밖 — 유일하게 남은 에러 계약 한계
 - **스키마 마이그레이션(Flyway) 미도입** — 운영 첫 배포 전 도입 예정 (`schema.sql` → `V1__init.sql`)
 - **메트릭 미노출** — 운영 시 Micrometer 레지스트리 추가 예정. OTel 트레이싱·서킷브레이커는 규모가 커질 때까지 의도적 보류
-- Spring Security 미포함(의도) — 도입 시: 시큐리티 필터체인에 CORS 활성화, `SecurityHeaderFilter` 와 중복 정리, 401/403 을 에러 봉투에 수렴
+- Spring Security 미포함(의도) — 도입 시: 시큐리티 필터체인에 CORS 활성화, `SecurityHeaderFilter` 와 중복 정리, 401/403 을 에러 래퍼에 수렴
