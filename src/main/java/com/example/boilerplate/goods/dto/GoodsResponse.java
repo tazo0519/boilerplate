@@ -2,7 +2,7 @@ package com.example.boilerplate.goods.dto;
 
 import com.example.boilerplate.client.goods.dto.GoodsApiResponse;
 import com.example.boilerplate.goods.entity.Goods;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,8 +18,8 @@ public class GoodsResponse {
     private String description;
     private Long originalPrice;
     private Long salePrice;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
 
     public static GoodsResponse from(Goods goods, GoodsApiResponse priceInfo) {
         return GoodsResponse.builder()

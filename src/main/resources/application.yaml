@@ -34,9 +34,11 @@ spring:
         one-indexed-parameters: false # page 파라미터는 0-based 유지(규약 명시)
 
   # --- 모든 프로필 공통: JPA (DB 는 전 프로필 PostgreSQL) ---
+  # 스키마는 Flyway(db/migration/V*.sql)가 부팅 시 적용하고,
+  # validate 가 "엔티티 ↔ 실제 스키마" 드리프트를 모든 환경의 부팅에서 잡는다(fail-fast).
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: validate
       naming:
         physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
     open-in-view: false

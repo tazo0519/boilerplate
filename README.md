@@ -49,7 +49,7 @@ docker compose up -d postgres
 1. 삭제: `coupon/`, `goods/`, `client/goods/` 패키지, `GoodsRepositoryTest`
 2. `config/HttpServiceClientsConfig` 에서 `@ImportHttpServices(group = "goods", ...)` 와 **상단의 `import ...client.goods.GoodsClient;` 를 함께 제거** (import 잔존 시 컴파일 에러 — 미사용이 된 `ImportHttpServices` import 도 정리)
 3. `application.yaml` 에서 `spring.http.serviceclient.goods` 블록 제거
-4. `db/schema.sql` 에서 `goods`/`coupons` 테이블·시드 제거
+4. `db/migration/V1__init.sql` 에서 `goods`/`coupons` 테이블·시드 제거 (아직 어느 DB 에도 적용 전인 복사 직후에만 — 이미 적용된 뒤라면 V파일 수정 금지, DROP 마이그레이션을 새 V파일로)
 5. 도메인 에러 코드(`CouponErrorCode`/`GoodsErrorCode`)는 도메인 패키지와 함께 사라짐 — 공통 코드는 무손상 (`exception/ErrorCode` javadoc 의 coupon 예시 언급은 무해한 잔존)
 
 ### 2-3. 운영 배포 전 준비
@@ -103,6 +103,6 @@ BaseController.java, ErrorResponse.java
 ## 6. 알려진 한계 / 로드맵
 
 - **Tomcat 요청 파싱 실패**(잘못된 percent-encoding URI 등)는 앱 도달 전이라 래퍼 밖 — 유일하게 남은 에러 계약 한계
-- **스키마 마이그레이션(Flyway) 미도입** — 운영 첫 배포 전 도입 예정 (`schema.sql` → `V1__init.sql`)
+- ~~스키마 마이그레이션(Flyway) 미도입~~ → **도입 완료** — `db/migration/V*.sql` + `ddl-auto: validate`. 적용된 V파일은 수정 금지, 변경은 새 V파일로
 - **메트릭 미노출** — 운영 시 Micrometer 레지스트리 추가 예정. OTel 트레이싱·서킷브레이커는 규모가 커질 때까지 의도적 보류
 - Spring Security 미포함(의도) — 도입 시: 시큐리티 필터체인에 CORS 활성화, `SecurityHeaderFilter` 와 중복 정리, 401/403 을 에러 래퍼에 수렴

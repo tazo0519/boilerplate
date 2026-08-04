@@ -4,7 +4,7 @@ import com.example.boilerplate.common.mask.MaskType;
 import com.example.boilerplate.common.mask.Masked;
 import com.example.boilerplate.coupon.entity.Coupon;
 import com.example.boilerplate.coupon.entity.CouponStatus;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,8 +26,8 @@ public class CouponResponse {
     private String recipientPhone;
 
     private Long goodsId;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
 
     public static CouponResponse from(Coupon coupon) {
         return CouponResponse.builder()
