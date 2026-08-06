@@ -26,7 +26,7 @@ docker compose up -d postgres
 - Swagger: `http://localhost:8080/swagger-ui.html` (local/dev/stg 만 — prod 차단)
 - 헬스체크: `/actuator/health/readiness`, `/actuator/health/liveness` (액세스 로그에서 제외됨)
 
-> **참고**: 로컬에서 `GET /goods` 는 예제 외부 API(더미 주소) 호출을 포함하므로 **502(`COMMON_EXTERNAL_API_ERROR`) 래퍼가 나오는 것이 정상**이다 — 외부 연동 에러 계약을 시연하는 예제. 또한 `docker-compose.yml` 의 `container_name` 이 고정이라 같은 호스트에서 이 저장소 복사본 두 개를 동시에 띄울 수 없다.
+> **참고**: `src/main` 에는 도메인 코드가 없다(순수 인프라) — 로컬 기동 시 비즈니스 엔드포인트는 없고 actuator/에러 계약만 동작한다. 사용 패턴의 살아있는 예시는 **테스트 픽스처**(`src/test/.../testsupport/Sample*`)와 회귀 테스트가 담당한다. 또한 `docker-compose.yml` 의 `container_name` 이 고정이라 같은 호스트에서 이 저장소 복사본 두 개를 동시에 띄울 수 없다.
 
 ## 2. 새 서비스 시작 체크리스트 (복사 후 순서대로)
 
@@ -45,12 +45,10 @@ docker compose up -d postgres
 | `taskdef.json` | `family`, `awslogs-group`, SSM 파라미터 경로(`/boilerplate/...`) |
 | `application-local.yaml` / `application-test.yaml` | 로컬·테스트용 더미 암호화 키 교체(선택 — 32byte Base64) |
 
-### 2-2. 예제 도메인 제거 (goods ↔ coupon 은 FK 로 결합되어 있으므로 함께 제거)
-1. 삭제: `coupon/`, `goods/`, `client/goods/` 패키지, `GoodsRepositoryTest`
-2. `config/HttpServiceClientsConfig` 에서 `@ImportHttpServices(group = "goods", ...)` 와 **상단의 `import ...client.goods.GoodsClient;` 를 함께 제거** (import 잔존 시 컴파일 에러 — 미사용이 된 `ImportHttpServices` import 도 정리)
-3. `application.yaml` 에서 `spring.http.serviceclient.goods` 블록 제거
-4. `db/migration/V1__init.sql` 에서 `goods`/`coupons` 테이블·시드 제거 (아직 어느 DB 에도 적용 전인 복사 직후에만 — 이미 적용된 뒤라면 V파일 수정 금지, DROP 마이그레이션을 새 V파일로)
-5. 도메인 에러 코드(`CouponErrorCode`/`GoodsErrorCode`)는 도메인 패키지와 함께 사라짐 — 공통 코드는 무손상 (`exception/ErrorCode` javadoc 의 coupon 예시 언급은 무해한 잔존)
+### 2-2. 첫 도메인 시작하기 (제거할 예제 없음 — `src/main` 은 순수 인프라)
+1. **스키마**: `src/main/resources/db/migration/V1__init.sql` 을 새로 작성 (시간 컬럼은 `timestamptz`)
+2. **작성 패턴 참고**: 테스트 픽스처 `src/test/.../testsupport/` 가 살아있는 예시 — `SampleEntity`(BaseEntity 상속 + `@Convert` 암호화), `SampleController`(respond/페이징/검증/예외), `SampleErrorCode`(도메인 enum)
+3. **외부 연동**: `HttpServiceClientsConfig` javadoc 의 3단계 절차 + `client/package-info.java` 컨벤션
 
 ### 2-3. 운영 배포 전 준비
 - SSM 파라미터 생성: `/{서비스명}/{env}/db_host,db_port,db_name,db_username,db_password,encryption_key_base64`(SecureString, 32byte Base64) — 키 미주입 시 **부팅이 의도적으로 실패**한다(fail-fast)
