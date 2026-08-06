@@ -65,7 +65,7 @@ class ApiContractIntegrationTest {
     @DisplayName("페이징 요청은 page/size 메타데이터를 정확히 반영한다")
     void pagingRequestReflectsPageAndSizeMetadata() throws Exception {
         // 뮤테이션 검증 S2: respond(Page) 에서 page/size 를 맞바꿔도 전 스위트가 통과했다 — 매핑을 고정.
-        mockMvc.perform(get("/coupons").param("page", "2").param("size", "7"))
+        mockMvc.perform(get("/samples").param("page", "2").param("size", "7"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.items").isArray())
                 .andExpect(jsonPath("$.content.page").value(2))
@@ -90,7 +90,7 @@ class ApiContractIntegrationTest {
     @Test
     @DisplayName("잘못된 JSON body 는 400 래퍼로 응답한다")
     void malformedJsonBodyRespondsWith400Wrapper() throws Exception {
-        mockMvc.perform(post("/coupons").contentType(MediaType.APPLICATION_JSON).content("{invalid"))
+        mockMvc.perform(post("/samples").contentType(MediaType.APPLICATION_JSON).content("{invalid"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.code").value("COMMON_BAD_REQUEST"))
                 .andExpect(jsonPath("$.errors.traceId").exists());
@@ -99,7 +99,7 @@ class ApiContractIntegrationTest {
     @Test
     @DisplayName("허용되지 않은 메서드는 405 래퍼와 Allow 헤더로 응답한다")
     void methodNotAllowedRespondsWith405WrapperAndAllowHeader() throws Exception {
-        mockMvc.perform(delete("/goods"))
+        mockMvc.perform(delete("/samples"))
                 .andExpect(status().isMethodNotAllowed())
                 .andExpect(jsonPath("$.errors.code").value("COMMON_METHOD_NOT_ALLOWED"))
                 .andExpect(header().string("Allow", org.hamcrest.Matchers.containsString("GET")));
@@ -109,7 +109,7 @@ class ApiContractIntegrationTest {
     @DisplayName("협상 실패(406)도 빈 body 가 아니라 JSON 래퍼로 응답한다")
     void notAcceptableRespondsWithJsonWrapperInsteadOfEmptyBody() throws Exception {
         // 적대적 검증 F1: Content-Type 프리셋이 없으면 렌더러가 재예외를 던져 빈 body 로 붕괴했다.
-        mockMvc.perform(get("/coupons").accept(MediaType.APPLICATION_XML))
+        mockMvc.perform(get("/samples").accept(MediaType.APPLICATION_XML))
                 .andExpect(status().isNotAcceptable())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.errors.code").value("COMMON_NOT_ACCEPTABLE"));
@@ -118,7 +118,7 @@ class ApiContractIntegrationTest {
     @Test
     @DisplayName("검증 실패는 fieldErrors 를 포함한 400 래퍼로 응답한다")
     void validationFailureRespondsWith400WrapperIncludingFieldErrors() throws Exception {
-        mockMvc.perform(post("/coupons").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        mockMvc.perform(post("/samples").contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.code").value("COMMON_INVALID_INPUT"))
                 .andExpect(jsonPath("$.errors.fieldErrors").isArray())
@@ -129,16 +129,16 @@ class ApiContractIntegrationTest {
     @Test
     @DisplayName("도메인 예외는 도메인 코드와 해당 상태코드로 응답한다")
     void domainExceptionRespondsWithDomainCodeAndStatus() throws Exception {
-        mockMvc.perform(get("/coupons/999999"))
+        mockMvc.perform(get("/samples/999999"))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.errors.code").value("COUPON_NOT_FOUND"))
+                .andExpect(jsonPath("$.errors.code").value("SAMPLE_NOT_FOUND"))
                 .andExpect(jsonPath("$.errors.traceId").exists());
     }
 
     @Test
     @DisplayName("존재하지 않는 정렬 필드는 500 이 아니라 400 으로 응답한다")
     void unknownSortFieldRespondsWith400InsteadOf500() throws Exception {
-        mockMvc.perform(get("/coupons").param("sort", "nonexistentField"))
+        mockMvc.perform(get("/samples").param("sort", "nonexistentField"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.code").value("COMMON_BAD_REQUEST"));
     }

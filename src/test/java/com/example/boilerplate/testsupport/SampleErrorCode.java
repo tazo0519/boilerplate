@@ -1,16 +1,16 @@
-package com.example.boilerplate.goods;
+package com.example.boilerplate.testsupport;
 
 import com.example.boilerplate.exception.ErrorCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 
-/** 상품 도메인 에러 코드 — 도메인 패키지에 두어 공통 enum 수정 없이 추가/삭제한다. */
+/** 도메인 에러 코드 작성 패턴의 예시 — 도메인 패키지에 enum 으로, 공통 파일 무수정. */
 @Getter
 @RequiredArgsConstructor
-public enum GoodsErrorCode implements ErrorCode {
+public enum SampleErrorCode implements ErrorCode {
 
-    GOODS_NOT_FOUND(HttpStatus.NOT_FOUND, "상품을 찾을 수 없습니다.");
+    SAMPLE_NOT_FOUND(HttpStatus.NOT_FOUND, "샘플을 찾을 수 없습니다.");
 
     private final HttpStatus status;
     private final String message;

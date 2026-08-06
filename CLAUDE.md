@@ -2,6 +2,8 @@
 
 Spring Boot 4.1 (Framework 7) · Java 21 · PostgreSQL 16 모놀리스 **보일러플레이트**.
 복사해서 새 서비스를 시작하는 템플릿이므로, 여기서 정한 컨벤션이 모든 파생 서비스로 복제된다.
+**`src/main` 은 순수 인프라 — 도메인/예제 코드를 두지 않는다.** 사용 패턴의 살아있는 예시는
+테스트 픽스처(`src/test/.../testsupport/Sample*`)가 담당하며, 회귀 테스트의 표적이기도 하다.
 사람용 안내(빠른 시작·복사 체크리스트·훅 표)는 `README.md` — 중복 설명하지 않는다.
 
 ## 설계 관심사 (모든 판단의 기준)
@@ -35,7 +37,7 @@ docker compose up -d postgres && SPRING_PROFILES_ACTIVE=local ./gradlew bootRun
 - **Jackson 3** (`tools.jackson.*`) — databind 는 신규 패키지. 어노테이션은 **이원화**: jackson-annotations 계열(`@JsonInclude` 등)은 `com.fasterxml` 유지, **databind 계열(`@JsonSerialize` 등)은 `tools.jackson.databind.annotation`**. 커스텀 시리얼라이저는 `tools.jackson.databind.ValueSerializer`. ⚠️ springdoc 이 Jackson 2 databind 도 classpath 에 올려두므로 **잘못된 `com.fasterxml...databind` import 도 컴파일에 성공하고 조용히 무시된다** — import 문을 눈으로 확인할 것.
 - **Boot 4 모듈화**: `@AutoConfigureMockMvc` → `spring-boot-starter-webmvc-test` + `org.springframework.boot.webmvc.test.autoconfigure`. `ErrorController` → `org.springframework.boot.webmvc.error`. `PropertyReferenceException` → `org.springframework.data.core`.
 - **Framework 7 은 `@Controller` 스테레오타입 없이는 핸들러 미인식** (`@RequestMapping` 클래스만으로 불가).
-- **테스트 전용 컨트롤러**는 스캔 밖 패키지(`com.example.testsupport`) + `@Import` — 스캔 범위 안에 두면 이중 등록(Ambiguous mapping). 테스트 클래스도 컴포넌트 스캔 대상임을 잊지 말 것.
+- **테스트 전용 빈은 "스캔 또는 @Import 중 하나만"** — 테스트 클래스도 컴포넌트 스캔 대상이라, 스캔 범위 안(`...boilerplate.testsupport` — 전 테스트 공용 픽스처)에 두면 `@Import` 금지, 스캔 밖(`com.example.testsupport` — 특정 테스트 전용)에 두면 `@Import` 필수. 병용하면 이중 등록(Ambiguous mapping).
 - `@ConfigurationProperties` 바인더는 **미해석 `${...}` placeholder 를 예외 없이 리터럴로 바인딩**한다 — 값 검증(예: `EnvKeyProvider` 의 placeholder 감지)이 fail-fast 의 실체다.
 - MockMvc 대비 실제 서블릿 동작(406 협상, ERROR 디스패치, Tomcat 파싱 레벨)이 다를 수 있다 — 에러 계약 변경 시 부팅 프로브로 재확인 권장.
 

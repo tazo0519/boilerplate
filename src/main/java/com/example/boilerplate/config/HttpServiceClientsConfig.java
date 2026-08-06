@@ -1,20 +1,20 @@
 package com.example.boilerplate.config;
 
-import com.example.boilerplate.client.goods.GoodsClient;
 import com.example.boilerplate.exception.ExternalApiException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.web.client.support.RestClientHttpServiceGroupConfigurer;
-import org.springframework.web.service.registry.ImportHttpServices;
 
 /**
- * 외부 연동 클라이언트 등록 — Spring Framework 7 의 HTTP Service Group 을 사용한다.
+ * 외부 연동 클라이언트 등록 지점 — Spring Framework 7 의 HTTP Service Group 을 사용한다.
+ * (보일러플레이트에는 예제 연동이 없다 — 파생 서비스가 아래 절차로 추가한다)
  *
  * <p>새 파트너 연동 추가 절차 (Config 클래스·팩토리 코드 불필요):
  * <ol>
- *   <li>{@code client/{대상}/} 에 {@code @HttpExchange} 인터페이스 선언</li>
- *   <li>아래에 {@code @ImportHttpServices(group = "{대상}", types = XxxClient.class)} 한 줄 추가
+ *   <li>{@code client/{대상}/} 에 {@code @HttpExchange} 인터페이스 선언
+ *       (record DTO·엔벨로프 컨벤션은 {@code client/package-info.java})</li>
+ *   <li>이 클래스에 {@code @ImportHttpServices(group = "{대상}", types = XxxClient.class)} 추가
  *       (@Repeatable — 그룹마다 반복 선언)</li>
  *   <li>yaml 에 {@code spring.http.serviceclient.{대상}.base-url} 설정
  *       (그룹별 default-header/타임아웃도 같은 위치에서 — 전역 {@code spring.http.clients.*} 는 fallback)</li>
@@ -29,7 +29,6 @@ import org.springframework.web.service.registry.ImportHttpServices;
  * </ul>
  */
 @Configuration(proxyBeanMethods = false)
-@ImportHttpServices(group = "goods", types = GoodsClient.class)
 public class HttpServiceClientsConfig {
 
     @Bean
