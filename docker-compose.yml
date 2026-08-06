@@ -22,8 +22,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      # 컨테이너 최초 생성 시 스키마/샘플 데이터 자동 적재 (테스트와 동일 소스)
-      - ./src/main/resources/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      # 스키마는 앱이 부팅하며 Flyway(db/migration)로 직접 적용한다 — init 스크립트 마운트 불필요.
+      # (Flyway 도입 이전 볼륨이 남아 있으면 `docker compose down -v` 로 초기화)
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U boilerplate -d boilerplate"]
       interval: 5s

@@ -28,7 +28,7 @@ docker compose up -d postgres && SPRING_PROFILES_ACTIVE=local ./gradlew bootRun
 - **외부 연동**: `client/{대상}/` 에 `@HttpExchange` 인터페이스 + record DTO(`Api` 접미사) + 파트너별 엔벨로프. 등록은 `HttpServiceClientsConfig` 의 `@ImportHttpServices` 한 줄 + `spring.http.serviceclient.{대상}.*` yaml. **외부 DTO 는 client 패키지 밖으로 노출 금지**(anti-corruption). 서비스에서 try/catch 하지 않는다(에러 변환은 공통층).
 - **에러 코드**: 공통은 `CommonErrorCode`, 도메인 코드는 **해당 도메인 패키지의 enum** (`implements ErrorCode`) — 공통 파일을 수정하지 않는다.
 - **설정**: `@ConfigurationProperties` 는 생성자 바인딩 record(불변). 시크릿은 환경변수/SSM — **cloud/prod 프로필의** yaml 에 default 를 두지 않는다(fail-fast). local/test 의 더미 키·default 는 **의도된 것**이니 제거하지 말 것. 기본 빈 제공은 auto-configuration(`@AutoConfiguration` + imports 파일) + `@ConditionalOnMissingBean` — 일반 `@Configuration` 의 조건부 빈은 등록 순서 비보장으로 금지.
-- **스키마**: `src/main/resources/db/schema.sql` 이 단일 소스(`ddl-auto: none`, Flyway 미도입). **엔티티를 추가/변경하면 schema.sql 의 DDL 도 함께 동기화** — 안 하면 integrationTest(운영 DDL 드리프트 검증)가 반드시 깨진다.
+- **스키마**: Flyway 마이그레이션(`src/main/resources/db/migration/V*.sql`)이 단일 소스(`ddl-auto: validate`). **적용된 V파일은 절대 수정하지 않는다(체크섬 봉인) — 변경은 항상 새 V파일로.** 엔티티 변경 시 마이그레이션 동반 — 안 하면 validate 가 전 환경 부팅과 integrationTest 에서 잡는다. 시간 컬럼은 `timestamptz` + 엔티티 `Instant`(환경 TZ 드리프트 방지 — `LocalDateTime` 금지).
 - 주석·커밋 메시지는 한국어. 주석은 "왜"를 남긴다(적대적 검증 실측 결과 인용 스타일 유지).
 
 ## 이 스택의 함정 (실측으로 확인된 것)
