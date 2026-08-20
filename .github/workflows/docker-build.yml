@@ -1,0 +1,56 @@
+name: Docker build
+
+# Docker 이미지 빌드 검증 — CI 2레인(gradle)의 사각지대를 메운다.
+# gradle 레인은 이미지를 빌드하지 않아서, dependabot 의 베이스 이미지(temurin) bump PR 이나
+# Dockerfile 수정이 이미지 빌드를 깨뜨려도 초록불이 뜬다. 이 워크플로가 그 구멍을 막는다.
+#
+# 빌드가 느리므로(컨테이너 안 전체 컴파일) 이미지 산출에 영향 주는 파일이 바뀔 때만 실행.
+# src 변경은 제외 — 컴파일 실패는 unit 레인이 더 빨리 잡고, Docker 고유 실패(베이스 이미지,
+# COPY 경로, apt 설치)는 src 와 무관하다.
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'Dockerfile'
+      - '.dockerignore'
+      - 'build.gradle'
+      - 'settings.gradle'
+      - 'gradle/**'
+      - 'gradlew'
+      - '.github/workflows/docker-build.yml'
+  pull_request:
+    branches: [ master ]
+    paths:
+      - 'Dockerfile'
+      - '.dockerignore'
+      - 'build.gradle'
+      - 'settings.gradle'
+      - 'gradle/**'
+      - 'gradlew'
+      - '.github/workflows/docker-build.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  docker-build:
+    name: Docker image build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      # push: false — 빌드 성공 여부만 검증(레지스트리 미사용).
+      # GHA 캐시로 레이어 재사용 — 베이스 이미지 bump PR 은 빌드 스테이지가 캐시되어 수 초에 끝난다.
+      - name: Build image (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

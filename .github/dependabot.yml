@@ -1,0 +1,35 @@
+# 의존성 자동 업데이트 — 이 저장소는 복사의 원본이라 여기가 낡으면 모든 파생 서비스가 낡은 채 시작한다.
+# minor/patch 는 주 1회 PR 하나로 그룹핑(개별 PR 홍수 → 방치 방지). major 는 개별 PR 로 분리해 눈으로 검토.
+# 올라온 PR 은 CI 2레인(단위 + Testcontainers 통합)이 자동 회귀 검증한다.
+version: 2
+updates:
+  # Gradle 의존성 (Spring Boot 패치/보안 업데이트가 핵심)
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      timezone: "Asia/Seoul"
+    groups:
+      gradle-minor-patch:
+        update-types: ["minor", "patch"]
+    open-pull-requests-limit: 5
+
+  # GitHub Actions (ci.yml 의 액션 버전)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      timezone: "Asia/Seoul"
+    groups:
+      actions-all:
+        patterns: ["*"]
+
+  # Docker 베이스 이미지 (eclipse-temurin 태그)
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      timezone: "Asia/Seoul"
