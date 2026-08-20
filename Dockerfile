@@ -23,13 +23,19 @@ RUN --mount=type=cache,target=/root/.gradle \
 FROM eclipse-temurin:21-jre AS runtime
 WORKDIR /app
 
+# ECS 컨테이너 healthCheck(taskdef.json)가 컨테이너 내부에서 curl 을 실행한다.
+# JRE 이미지에는 curl 이 없어서, 미설치 상태로 healthCheck 를 켜면
+# "도구 없음 → 영구 실패 판정 → 정상 태스크 무한 교체"가 된다 — taskdef 와 세트로 유지할 것.
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
 # root 로 실행하지 않도록 전용 유저 생성 + 작업 디렉터리 소유권 부여
 # (힙덤프 등 /app 하위 쓰기가 필요할 수 있어 소유권을 명시한다)
 RUN groupadd --system spring && useradd --system --gid spring spring \
     && chown spring:spring /app
 
-# jar 소유권을 실행 유저로 지정
-COPY --chown=spring:spring --from=build /workspace/build/libs/*-SNAPSHOT.jar app.jar
+# jar 소유권을 실행 유저로 지정 (이름은 build.gradle bootJar 에서 app.jar 로 고정 — 버전 문자열 비의존)
+COPY --chown=spring:spring --from=build /workspace/build/libs/app.jar app.jar
 USER spring
 
 EXPOSE 8080

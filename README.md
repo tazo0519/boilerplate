@@ -102,5 +102,5 @@ BaseController.java, ErrorResponse.java
 
 - **Tomcat 요청 파싱 실패**(잘못된 percent-encoding URI 등)는 앱 도달 전이라 래퍼 밖 — 유일하게 남은 에러 계약 한계
 - ~~스키마 마이그레이션(Flyway) 미도입~~ → **도입 완료** — `db/migration/V*.sql` + `ddl-auto: validate`. 적용된 V파일은 수정 금지, 변경은 새 V파일로
-- **메트릭 미노출** — 운영 시 Micrometer 레지스트리 추가 예정. OTel 트레이싱·서킷브레이커는 규모가 커질 때까지 의도적 보류
+- **메트릭 미노출(의도적 보류)** — CloudWatch 커스텀 메트릭은 개당 과금이라 무트래픽 단계에선 고정비만 생긴다. 실트래픽 발생 시 Micrometer CloudWatch 레지스트리를 "기본 off 토글 + 핵심 지표(HTTP 합계/JVM/커넥션풀) 화이트리스트"로 도입 예정. OTel 트레이싱·서킷브레이커도 규모가 커질 때까지 보류
 - Spring Security 미포함(의도) — 도입 시: 시큐리티 필터체인에 CORS 활성화, `SecurityHeaderFilter` 와 중복 정리, 401/403 을 에러 래퍼에 수렴
