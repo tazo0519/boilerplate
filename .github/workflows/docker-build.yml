@@ -42,13 +42,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
       # push: false — 빌드 성공 여부만 검증(레지스트리 미사용).
       # GHA 캐시로 레이어 재사용 — 베이스 이미지 bump PR 은 빌드 스테이지가 캐시되어 수 초에 끝난다.
       - name: Build image (no push)
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: false
