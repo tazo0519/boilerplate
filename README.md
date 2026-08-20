@@ -98,6 +98,9 @@ BaseController.java, ErrorResponse.java
 ### RFC 9457(Problem Details) 을 쓰지 않는 이유
 기계가 분기할 안정적 `code` 원칙은 채택했으나, `application/problem+json` top-level 전환은 자사 프론트 대상 API 라 실익이 낮아 래퍼 계약을 유지한다. 외부 공개 API 가 생기면 재검토.
 
+### 자바 메이저 업그레이드는 3곳 동시 변경 (한 커밋)
+자바 버전은 세 파일에 선언되어 있어 하나만 올리면 빌드가 깨진다 — `build.gradle`(toolchain) · `Dockerfile`(FROM ×2) · `.github/workflows/ci.yml`(setup-java ×2). 이 이유로 dependabot 의 temurin 메이저 bump 제안은 차단되어 있다(단독 머지가 구조적으로 불가능 — `dependabot.yml` 주석 참조). 불일치는 Docker build CI 가 잡는다.
+
 ## 6. 알려진 한계 / 로드맵
 
 - **Tomcat 요청 파싱 실패**(잘못된 percent-encoding URI 등)는 앱 도달 전이라 래퍼 밖 — 유일하게 남은 에러 계약 한계
