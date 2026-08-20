@@ -12,8 +12,8 @@ spring:
   config:
     import:
       - optional:file:./.env[.properties]
-  # 인플라이트 요청 드레이닝 시간. ECS task def stopTimeout(권장 ≥ 45s) 보다 작게,
-  # ALB deregistration delay 는 이 시간을 덮도록 설정한다.
+  # 인플라이트 요청 드레이닝 시간. ECS stopTimeout(taskdef.json: 60s — 드레이닝 후 JVM 정리 여유 포함)
+  # 보다 작게, ALB deregistration delay 는 이 시간을 덮도록 설정한다.
   lifecycle:
     timeout-per-shutdown-phase: 30s
   web:

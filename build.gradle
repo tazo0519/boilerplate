@@ -19,6 +19,12 @@ springBoot {
     }
 }
 
+// 산출물 이름을 버전과 무관하게 고정 — Dockerfile 의 COPY 가 "-SNAPSHOT" 유무에 의존하면
+// 정식 버전 전환(예: 1.0.0) 시점에 매칭 실패로 이미지 빌드가 깨진다.
+tasks.named('bootJar') {
+    archiveFileName = 'app.jar'
+}
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
