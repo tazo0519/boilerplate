@@ -3,7 +3,7 @@
 # =====================================================================
 # Build stage — Gradle wrapper(9.5.1) + JDK 21 로 실행 가능한 boot jar 생성
 # =====================================================================
-FROM eclipse-temurin:21-jdk AS build
+FROM eclipse-temurin:24-jdk AS build
 WORKDIR /workspace
 
 # 빌드 스크립트/래퍼 먼저 복사(레이어 캐시), 소스는 이후 복사
@@ -20,7 +20,7 @@ RUN --mount=type=cache,target=/root/.gradle \
 # =====================================================================
 # Runtime stage — JRE 21, non-root 로 실행
 # =====================================================================
-FROM eclipse-temurin:21-jre AS runtime
+FROM eclipse-temurin:24-jre AS runtime
 WORKDIR /app
 
 # ECS 컨테이너 healthCheck(taskdef.json)가 컨테이너 내부에서 curl 을 실행한다.
