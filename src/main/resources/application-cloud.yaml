@@ -40,6 +40,9 @@ logging:
 #    EnvKeyProvider 의 명시적 placeholder 감지가 부팅을 중단시킨다 → 공개 더미 키로 PII 를
 #    암호화하는 사고(yaml/git 공개 = 사실상 평문)를 원천 차단.
 #    dev/stg/prod 는 반드시 KMS/Secret Manager(또는 ECS taskdef secrets)에서 주입한다.
+#
+# 암호화 미사용 서비스: 아래 crypto 블록을 삭제하면 모듈 전체가 비활성화된다
+#    (opt-in — key-base64 미설정 시 crypto 빈이 등록되지 않아 키 없이도 부팅된다).
 boilerplate:
   security:
     crypto:
