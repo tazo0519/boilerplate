@@ -44,11 +44,12 @@ class SampleEncryptionIntegrationTest {
         entityManager.flush();
         entityManager.clear(); // 1차 캐시 제거 — DB 재조회를 강제
 
-        // DB 원본 컬럼: 평문이 아니어야 하고, 저장 포맷(Base64) 이어야 한다
+        // DB 원본 컬럼: 평문이 아니어야 하고, 저장 포맷("{version}:{Base64(IV+CT)}") 이어야 한다
         String stored = jdbcTemplate.queryForObject(
                 "SELECT phone FROM samples WHERE id = ?", String.class, saved.getId());
-        assertThat(stored).isNotNull().isNotEqualTo(PLAIN_PHONE).doesNotContain("1234");
-        byte[] decoded = Base64.getDecoder().decode(stored); // 포맷 검증(디코드 실패 시 예외)
+        assertThat(stored).isNotNull().isNotEqualTo(PLAIN_PHONE).doesNotContain("1234")
+                .startsWith("v1:"); // 키 버전 프리픽스 — 로테이션 시 키 식별용 와이어 계약
+        byte[] decoded = Base64.getDecoder().decode(stored.substring("v1:".length()));
         assertThat(decoded.length).isGreaterThan(12 + 16);   // IV(12) + tag(16) + 암호문
 
         // 엔티티 재조회: 평문 복원
